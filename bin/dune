@@ -1,0 +1,4 @@
+(executable
+ (public_name dungeon_crawler)
+ (name main)
+ (libraries dungeon_crawler))
