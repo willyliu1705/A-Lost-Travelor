@@ -1,6 +1,8 @@
 type t = {
   mutable x : int;
   mutable y : int;
+      (* store additional information about player in future sprints (e.g.
+         inventory) *)
 }
 
 let create_player x y = { x; y }
