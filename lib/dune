@@ -1,2 +1,3 @@
 (library
- (name dungeon_crawler))
+ (name dungeon_crawler)
+ (libraries))
