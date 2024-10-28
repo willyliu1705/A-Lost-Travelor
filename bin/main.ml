@@ -1,50 +1,32 @@
-open Bogue
-module W = Widget
-module L = Layout
+open Graphics
+open Dungeon_crawler.Player
 
-let box_speed = 10
+let player1 = create_player 40 40 50 50
 
-let move_box box_widget (dx, dy) =
-  let layout = L.containing_widget box_widget |> Option.get in
-  let x = L.getx layout + dx in
-  let y = L.gety layout + dy in
-  L.setx layout x;
-  L.sety layout y;
-  Update.push box_widget
+let draw_player player =
+  draw_rect (current_x_pos player) (current_y_pos player) (get_height player)
+    (get_width player)
 
-let handle_key box_widget event =
-  match Trigger.event_kind event with
-  | `Key_down -> (
-      let keycode = Tsdl.Sdl.Event.(get event keyboard_keycode) in
-      match keycode with
-      | 119 -> move_box box_widget (0, -box_speed) (* 'w' key for up *)
-      | 115 -> move_box box_widget (0, box_speed) (* 's' key for down *)
-      | 97 -> move_box box_widget (-box_speed, 0) (* 'a' key for left *)
-      | 100 -> move_box box_widget (box_speed, 0) (* 'd' key for right *)
-      | _ -> ())
+let update_player player =
+  match read_key () with
+  | 'w' -> move_player player 0 2
+  | 's' -> move_player player 0 (-2)
+  | 'a' -> move_player player (-2) 0
+  | 'd' -> move_player player 2 0
   | _ -> ()
 
-let main () =
-  let box_style =
-    Style.create ~background:(Style.color_bg (Draw.opaque Draw.blue)) ()
-  in
-  let box_widget = W.box ~w:50 ~h:50 ~style:box_style () in
+(* let get_corners player = {}
 
-  let box_layout = L.resident ~x:0 ~y:0 box_widget in
-  let layout = L.tower ~scale_content:false [ box_layout ] in
-
-  L.claim_keyboard_focus box_layout;
-
-  let connection =
-    W.connect box_widget box_widget
-      (fun w _ event -> handle_key w event)
-      [ Trigger.key_down ]
-  in
-  W.add_connection box_widget connection;
-
-  let board = Bogue.of_layout layout in
-  Bogue.run board
+   let collision_check (obj1 : Dungeon_crawler.Player.t) (obj2:
+   Dungeon_crawler.Player.t) dx dy = let corners_obj1 = get_corners obj1 in let
+   corners_obj2 = get_corners obj2 in if corners_obj1 *)
 
 let () =
-  main ();
-  Bogue.quit ()
+  while true do
+    auto_synchronize false;
+    open_graph "";
+    draw_rect 4 5 300 200;
+    draw_player player1;
+    update_player player1;
+    synchronize ()
+  done
