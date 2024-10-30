@@ -6,8 +6,3 @@ $ opam update
 $ opam upgrade
 $ opam install graphics
 ```
-
-# Change bin/dune library stanza to include graphics
-```
-(libraries dungeon_crawler graphics)
-```
