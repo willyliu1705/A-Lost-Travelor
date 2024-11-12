@@ -1,6 +1,9 @@
 open Graphics
 open Dungeon_crawler.Player
 
+type keyword = { mutable word : string }
+
+let keyword = { word = "Start Menu" }
 let player1 = create_player 40 40 50 50
 
 let draw_player player =
@@ -21,33 +24,42 @@ let check_press_start player =
     match mouse_position with
     | x, y ->
         if x >= 766 && x <= 1141 && y >= 133 && y <= 253 then
-          move_player player1 10 10
+          let () = clear_graph () in
+          keyword.word <- "Game Start"
+        else ();
+        synchronize ()
 
 (** [draw_rect_centered] draws the rectangle centered at point [x], [y] with
     width [w] and height [h].*)
 let draw_rect_centered x y w h = draw_rect (x - (w / 2)) (y - (h / 2)) w h
 
+let draw_screens keyword =
+  match keyword with
+  | "Start Menu" ->
+      set_color black;
+      draw_rect 0 0 1907 986;
+      fill_rect 0 0 1907 986;
+      set_color white;
+      draw_poly_line [| (1354, 986); (1354, 0) |];
+      draw_poly_line [| (554, 986); (554, 0) |];
+      draw_circle 954 483 10;
+      draw_rect_centered 954 193 375 120;
+      moveto 913 193;
+      draw_string "PRESS TO START";
+      draw_arc 954 800 400 100 0 180;
+      draw_arc 954 200 400 100 180 360;
+      check_press_start ()
+  | "Game Start" ->
+      set_color red;
+      draw_rect 0 0 1907 986;
+      synchronize ()
+  | _ -> ()
+
 let () =
   while true do
     auto_synchronize false;
     open_graph " 1908x987";
-    set_window_title "Game";
-    set_color black;
-    draw_rect 0 0 1907 986;
-    fill_rect 0 0 1907 986;
-    set_color white;
-    (* draw_poly_line [| (954, 986); (954, 0) |]; *)
-    draw_poly_line [| (1354, 986); (1354, 0) |];
-    draw_poly_line [| (554, 986); (554, 0) |];
-    draw_circle 954 483 10;
-    draw_rect_centered 954 193 375 120;
-    moveto 913 193;
-    draw_string "PRESS TO START";
-    draw_arc 954 800 400 100 0 180;
-    draw_arc 954 200 400 100 180 360;
-    draw_player player1;
-    update_player player1;
-    synchronize ()
+    draw_screens keyword.word
   done
 
 (* let get_corners player = {}
