@@ -10,13 +10,15 @@ type direction =
 type projectile = {
   x : int;
   y : int;
-  dx : int; (* Horizontal speed based on direction *)
-  dy : int; (* Vertical speed based on direction *)
+  dx : int;
+  dy : int;
 }
 
 let player1 = create_player 40 40 50 50
 let projectiles = ref []
-let player_direction = ref Right (* Default direction *)
+
+let player_direction =
+  ref Right (* Change default direction here if necessary. *)
 
 let draw_player player =
   draw_rect (current_x_pos player) (current_y_pos player) (get_height player)
