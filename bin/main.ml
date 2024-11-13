@@ -52,6 +52,8 @@ let draw_screens keyword =
   | "Game Start" ->
       set_color red;
       draw_rect 0 0 1907 986;
+      draw_player player1;
+      update_player player1;
       synchronize ()
   | _ -> ()
 
