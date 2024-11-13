@@ -14,6 +14,9 @@ type projectile = {
   dy : int;
 }
 
+type keyword = { mutable word : string }
+
+let keyword = { word = "Start Menu" }
 let player1 = create_player 40 40 50 50
 let projectiles = ref []
 
@@ -71,21 +74,57 @@ let update_player player =
     | ' ' -> shoot player
     | _ -> ()
 
-(* let get_corners player = {}
+let check_press_start player =
+  let mouse_position = mouse_pos () in
+  if button_down () then
+    match mouse_position with
+    | x, y ->
+        if x >= 766 && x <= 1141 && y >= 133 && y <= 253 then
+          let () = clear_graph () in
+          keyword.word <- "Game Start"
+        else ();
+        synchronize ()
 
-   let collision_check (obj1 : Dungeon_crawler.Player.t) (obj2:
-   Dungeon_crawler.Player.t) dx dy = let corners_obj1 = get_corners obj1 in let
-   corners_obj2 = get_corners obj2 in if corners_obj1 *)
+(** [draw_rect_centered] draws the rectangle centered at point [x], [y] with
+    width [w] and height [h].*)
+let draw_rect_centered x y w h = draw_rect (x - (w / 2)) (y - (h / 2)) w h
+
+let draw_screens keyword =
+  match keyword with
+  | "Start Menu" ->
+      set_color black;
+      draw_rect 0 0 1907 986;
+      fill_rect 0 0 1907 986;
+      set_color white;
+      draw_poly_line [| (1354, 986); (1354, 0) |];
+      draw_poly_line [| (554, 986); (554, 0) |];
+      draw_circle 954 483 10;
+      draw_rect_centered 954 193 375 120;
+      moveto 913 193;
+      draw_string "PRESS TO START";
+      draw_arc 954 800 400 100 0 180;
+      draw_arc 954 200 400 100 180 360;
+      check_press_start ()
+  | "Game Start" ->
+      set_color red;
+      draw_rect 0 0 1907 986;
+      draw_player player1;
+      update_player player1;
+      draw_projectiles ();
+      move_projectiles ();
+      synchronize ()
+  | _ -> ()
 
 let () =
   open_graph "";
   while true do
     auto_synchronize false;
-    clear_graph ();
-    draw_rect 4 5 300 200;
-    draw_player player1;
-    draw_projectiles ();
-    update_player player1;
-    move_projectiles ();
-    synchronize ()
+    open_graph " 1908x987";
+    draw_screens keyword.word
   done
+
+(* let get_corners player = {}
+
+   let collision_check (obj1 : Dungeon_crawler.Player.t) (obj2:
+   Dungeon_crawler.Player.t) dx dy = let corners_obj1 = get_corners obj1 in let
+   corners_obj2 = get_corners obj2 in if corners_obj1 *)
