@@ -1,14 +1,22 @@
 open Graphics
 open Dungeon_crawler.Player
 
+type direction =
+  | Up
+  | Down
+  | Left
+  | Right
+
 type projectile = {
   x : int;
   y : int;
-  speed : int;
+  dx : int; (* Horizontal speed based on direction *)
+  dy : int; (* Vertical speed based on direction *)
 }
 
 let player1 = create_player 40 40 50 50
 let projectiles = ref []
+let player_direction = ref Right (* Default direction *)
 
 let draw_player player =
   draw_rect (current_x_pos player) (current_y_pos player) (get_height player)
@@ -18,15 +26,27 @@ let draw_projectiles () =
   List.iter (fun p -> draw_rect p.x p.y 5 5) !projectiles
 
 let move_projectiles () =
-  projectiles := List.map (fun p -> { p with x = p.x + p.speed }) !projectiles;
-  projectiles := List.filter (fun p -> p.x < size_x ()) !projectiles
+  projectiles :=
+    List.map (fun p -> { p with x = p.x + p.dx; y = p.y + p.dy }) !projectiles;
+  projectiles :=
+    List.filter
+      (fun p -> p.x < size_x () && p.x >= 0 && p.y < size_y () && p.y >= 0)
+      !projectiles
 
 let shoot player =
+  let dx, dy =
+    match !player_direction with
+    | Up -> (0, 5)
+    | Down -> (0, -5)
+    | Left -> (-5, 0)
+    | Right -> (5, 0)
+  in
   let new_projectile =
     {
       x = current_x_pos player + (get_width player / 2);
       y = current_y_pos player + (get_height player / 2);
-      speed = 1;
+      dx;
+      dy;
     }
   in
   projectiles := new_projectile :: !projectiles
@@ -34,11 +54,19 @@ let shoot player =
 let update_player player =
   if key_pressed () then
     match read_key () with
-    | 'w' -> move_player player 0 2
-    | 's' -> move_player player 0 (-2)
-    | 'a' -> move_player player (-2) 0
-    | 'd' -> move_player player 2 0
-    | ' ' -> shoot player (* ' ' indicates spacebar *)
+    | 'w' ->
+        move_player player 0 2;
+        player_direction := Up
+    | 's' ->
+        move_player player 0 (-2);
+        player_direction := Down
+    | 'a' ->
+        move_player player (-2) 0;
+        player_direction := Left
+    | 'd' ->
+        move_player player 2 0;
+        player_direction := Right
+    | ' ' -> shoot player
     | _ -> ()
 
 (* let get_corners player = {}
