@@ -1,18 +1,12 @@
 open Graphics
 open Dungeon_crawler.Player
+open Dungeon_crawler.Projectile
 
 type direction =
   | Up
   | Down
   | Left
   | Right
-
-type projectile = {
-  x : int;
-  y : int;
-  dx : int;
-  dy : int;
-}
 
 type keyword = { mutable word : string }
 
@@ -27,17 +21,6 @@ let draw_player player =
   draw_rect (current_x_pos player) (current_y_pos player) (get_height player)
     (get_width player)
 
-let draw_projectiles () =
-  List.iter (fun p -> draw_rect p.x p.y 5 5) !projectiles
-
-let move_projectiles () =
-  projectiles :=
-    List.map (fun p -> { p with x = p.x + p.dx; y = p.y + p.dy }) !projectiles;
-  projectiles :=
-    List.filter
-      (fun p -> p.x < size_x () && p.x >= 0 && p.y < size_y () && p.y >= 0)
-      !projectiles
-
 let shoot player =
   let dx, dy =
     match !player_direction with
@@ -47,12 +30,10 @@ let shoot player =
     | Right -> (5, 0)
   in
   let new_projectile =
-    {
-      x = current_x_pos player + (get_width player / 2);
-      y = current_y_pos player + (get_height player / 2);
-      dx;
-      dy;
-    }
+    create_projectile
+      (current_x_pos player + (get_width player / 2))
+      (current_y_pos player + (get_height player / 2))
+      dx dy
   in
   projectiles := new_projectile :: !projectiles
 
@@ -110,8 +91,8 @@ let draw_screens keyword =
       draw_rect 0 0 1907 986;
       draw_player player1;
       update_player player1;
-      draw_projectiles ();
-      move_projectiles ();
+      draw_all !projectiles;
+      projectiles := move_all !projectiles;
       synchronize ()
   | _ -> ()
 
