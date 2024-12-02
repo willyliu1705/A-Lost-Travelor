@@ -1,8 +1,13 @@
 open OUnit2
 open Dungeon_crawler.Player
 open Dungeon_crawler.Projectile
+open Dungeon_crawler.Direction
 
 let string_of_tuple (x, y) = Printf.sprintf "(%d, %d)" x y
+
+let string_of_option = function
+  | Some _ -> "Some direction"
+  | None -> "None"
 
 (** [test_current_x name input expected_output] is a test case with [name] and
     checks if the current x of the player [input] is equal to [expected_output]. *)
@@ -83,6 +88,21 @@ let test_get_position name proj expected_x expected_y =
   let actual_x, actual_y = get_position proj in
   assert_equal expected_x actual_x ~printer:string_of_int;
   assert_equal expected_y actual_y ~printer:string_of_int
+
+(** [test_to_delta name dir expected_dx expected_dy] is a test case with [name]
+    that checks if converting [dir] to a delta gives ([expected_dx],
+    [expected_dy]). *)
+let test_to_delta name dir expected_dx expected_dy =
+  name >:: fun _ ->
+  let actual_dx, actual_dy = to_delta dir in
+  assert_equal expected_dx actual_dx ~printer:string_of_int;
+  assert_equal expected_dy actual_dy ~printer:string_of_int
+
+(** [test_of_key name key expected_direction] is a test case with [name] that
+    checks if mapping [key] gives [expected_direction]. *)
+let test_of_key name key expected_direction =
+  name >:: fun _ ->
+  assert_equal expected_direction (of_key key) ~printer:string_of_option
 
 let tests =
   "test suite"
@@ -174,6 +194,17 @@ let tests =
          test_get_position "get position of projectile with large values"
            (create_proj 10000 20000 50 50)
            10000 20000;
+         test_to_delta "to_delta for up" up 0 5;
+         test_to_delta "to_delta for down" down 0 (-5);
+         test_to_delta "to_delta for left" left (-5) 0;
+         test_to_delta "to_delta for right" right 5 0;
+         test_of_key "of_key for 'w'" 'w' (Some up);
+         test_of_key "of_key for 's'" 's' (Some down);
+         test_of_key "of_key for 'a'" 'a' (Some left);
+         test_of_key "of_key for 'd'" 'd' (Some right);
+         test_of_key "of_key for invalid key 'x'" 'x' None;
+         test_of_key "of_key for numeric key '1'" '1' None;
+         test_of_key "of_key for special character '@'" '@' None;
        ]
 
 let _ = run_test_tt_main tests
