@@ -1,13 +1,17 @@
 type t
 (** Abstract type representing a projectile. *)
 
-val create_projectile : int -> int -> int -> int -> t
-(** [create_projectile x y dx dy] creates a projectile at position ([x], [y])
-    with a velocity ([dx], [dy]). *)
+val create_proj : int -> int -> int -> int -> t
+(** [create_proj x y dx dy] creates a projectile at position ([x], [y]) with a
+    velocity ([dx], [dy]). *)
 
-val move_all : t list -> t list
-(** [move_all projectiles] moves all projectiles in the list [projectiles]
-    according to their velocity and removes those out of bounds. *)
+val move_proj : t -> t
+(** [move_proj projectile] returns a new projectile with updated position based
+    on its velocity. *)
 
-val draw_all : t list -> unit
-(** [draw_all projectiles] draws all projectiles in the list [projectiles]. *)
+val in_bounds : t -> int -> int -> bool
+(** [in_bounds projectile width height] checks if [projectile] is within bounds
+    of the screen defined by [width] and [height]. *)
+
+val get_position : t -> int * int
+(** [get_position projectile] is the (x, y) position of [projectile]. *)

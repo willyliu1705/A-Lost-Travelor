@@ -21,6 +21,19 @@ let draw_player player =
   draw_rect (current_x_pos player) (current_y_pos player) (get_height player)
     (get_width player)
 
+let draw_projectiles projectiles =
+  List.iter
+    (fun p ->
+      let x, y = get_position p in
+      draw_rect x y 5 5)
+    projectiles
+
+let move_projectiles projectiles =
+  let screen_width = size_x () in
+  let screen_height = size_y () in
+  projectiles |> List.map move_proj
+  |> List.filter (fun p -> in_bounds p screen_width screen_height)
+
 let shoot player =
   let dx, dy =
     match !player_direction with
@@ -30,7 +43,7 @@ let shoot player =
     | Right -> (5, 0)
   in
   let new_projectile =
-    create_projectile
+    create_proj
       (current_x_pos player + (get_width player / 2))
       (current_y_pos player + (get_height player / 2))
       dx dy
@@ -91,8 +104,8 @@ let draw_screens keyword =
       draw_rect 0 0 1907 986;
       draw_player player1;
       update_player player1;
-      draw_all !projectiles;
-      projectiles := move_all !projectiles;
+      draw_projectiles !projectiles;
+      projectiles := move_projectiles !projectiles;
       synchronize ()
   | _ -> ()
 
