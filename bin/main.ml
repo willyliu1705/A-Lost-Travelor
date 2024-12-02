@@ -1,21 +1,14 @@
 open Graphics
 open Dungeon_crawler.Player
 open Dungeon_crawler.Projectile
-
-type direction =
-  | Up
-  | Down
-  | Left
-  | Right
+open Dungeon_crawler.Direction
 
 type keyword = { mutable word : string }
 
 let keyword = { word = "Start Menu" }
 let player1 = create_player 40 40 50 50
 let projectiles = ref []
-
-let player_direction =
-  ref Right (* Change default direction here if necessary. *)
+let player_direction = ref right (* Change default direction here *)
 
 let draw_player player =
   draw_rect (current_x_pos player) (current_y_pos player) (get_height player)
@@ -35,13 +28,7 @@ let move_projectiles projectiles =
   |> List.filter (fun p -> in_bounds p screen_width screen_height)
 
 let shoot player =
-  let dx, dy =
-    match !player_direction with
-    | Up -> (0, 5)
-    | Down -> (0, -5)
-    | Left -> (-5, 0)
-    | Right -> (5, 0)
-  in
+  let dx, dy = to_delta !player_direction in
   let new_projectile =
     create_proj
       (current_x_pos player + (get_width player / 2))
@@ -53,20 +40,13 @@ let shoot player =
 let update_player player =
   if key_pressed () then
     match read_key () with
-    | 'w' ->
-        move_player player 0 2;
-        player_direction := Up
-    | 's' ->
-        move_player player 0 (-2);
-        player_direction := Down
-    | 'a' ->
-        move_player player (-2) 0;
-        player_direction := Left
-    | 'd' ->
-        move_player player 2 0;
-        player_direction := Right
-    | ' ' -> shoot player
-    | _ -> ()
+    | key -> (
+        match of_key key with
+        | Some dir ->
+            player_direction := dir;
+            let dx, dy = to_delta dir in
+            move_player player dx dy
+        | None -> if key = ' ' then shoot player else ())
 
 let check_press_start player =
   let mouse_position = mouse_pos () in
