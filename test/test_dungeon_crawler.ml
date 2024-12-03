@@ -145,17 +145,23 @@ let tests =
          test_current_x "player at negative x=-10"
            (create_player (-10) 0 10 10)
            (-10);
-         test_current_x "player at large x=10000"
+         test_current_x "player at large positive x=10000"
            (create_player 10000 0 10 10)
            10000;
+         test_current_x "player at large negative x=-10000"
+           (create_player (-10000) 0 10 10)
+           (-10000);
          test_current_y "player at origin has y=0" (create_player 0 0 20 20) 0;
          test_current_y "player at positive y=46" (create_player 82 46 20 20) 46;
          test_current_y "player at negative y=-2"
            (create_player 0 (-2) 20 20)
            (-2);
-         test_current_y "player at large y=10000"
+         test_current_y "player at large positive y=10000"
            (create_player 0 10000 20 20)
            10000;
+         test_current_y "player at large negative y=-10000"
+           (create_player 0 (-10000) 20 20)
+           (-10000);
          test_get_height "player with height 1" (create_player 0 2 1 2) 1;
          test_get_height "player with height 100"
            (create_player 4 92 100 22)
@@ -166,6 +172,91 @@ let tests =
          test_get_width "player with width 50" (create_player 4 92 28 50) 50;
          test_get_width "player with width 0 (invalid)"
            (create_player 4 92 28 0) 0;
+         test_move_player_x "move player by (0,0) does not change x"
+           (create_player 5 5 10 10) 0 0 5;
+         test_move_player_y "move player by (0,0) does not change y"
+           (create_player 5 5 10 10) 0 0 5;
+         test_move_player_x "move player by (2,3) updates x correctly"
+           (create_player 1 1 10 10) 2 3 3;
+         test_move_player_y "move player by (2,3) updates y correctly"
+           (create_player 1 1 10 10) 2 3 4;
+         test_move_player_x "move player to large positive x-coordinate"
+           (create_player 0 0 10 10) 1000 0 1000;
+         test_move_player_y "move player to large positive y-coordinate"
+           (create_player 0 0 10 10) 0 1000 1000;
+         test_move_player_x "move player to negative x-coordinate"
+           (create_player 0 0 10 10) (-5) 0 (-5);
+         test_move_player_y "move player to negative y-coordinate"
+           (create_player 0 0 10 10) 0 (-5) (-5);
+         test_move_player_x "move player by large negative x-coordinate"
+           (create_player 1000 1000 10 10)
+           (-2000) 0 (-1000);
+         test_move_player_y "move player by large negative y-coordinate"
+           (create_player 1000 1000 10 10)
+           0 (-2000) (-1000);
+         test_move_player_x "move player by very large positive dx"
+           (create_player 0 0 10 10) max_int 0 max_int;
+         test_move_player_y "move player by very large positive dy"
+           (create_player 0 0 10 10) 0 max_int max_int;
+         test_move_player_x "move player by very large negative dx"
+           (create_player max_int max_int 10 10)
+           (-max_int) 0 0;
+         test_move_player_y "move player by very large negative dy"
+           (create_player max_int max_int 10 10)
+           0 (-max_int) 0;
+         test_get_corners_height "get corners of player updates height"
+           (create_player 0 0 10 20) 10;
+         test_get_corners_width "get corners of player updates width"
+           (create_player 0 0 10 20) 20;
+         test_get_corners_height "get corners of large player updates height"
+           (create_player 1000 2000 500 500)
+           1500;
+         test_get_corners_width "get corners of large player updates width"
+           (create_player 1000 2000 500 500)
+           2500;
+         test_get_corners_height
+           "get corners of negative position updates height"
+           (create_player (-10) (-20) 15 25)
+           5;
+         test_get_corners_width "get corners of negative position updates width"
+           (create_player (-10) (-20) 15 25)
+           5;
+         test_get_corners_height "get corners with very large height"
+           (create_player 0 0 max_int 20)
+           max_int;
+         test_get_corners_width "get corners with very large width"
+           (create_player 0 0 10 max_int)
+           max_int;
+         test_get_corners_height "get corners with zero height"
+           (create_player 0 0 0 20) 0;
+         test_get_corners_width "get corners with zero width"
+           (create_player 0 0 10 0) 0;
+         test_create_proj_position
+           "create projectile at origin with zero velocity" 0 0 0 0 0 0;
+         test_create_proj_velocity "create projectile with positive velocity" 10
+           20 5 5 5 5;
+         test_create_proj_position
+           "create projectile with large position values" 10000 20000 50 50
+           10000 20000;
+         test_create_proj_velocity
+           "create projectile with large velocity values" 10000 20000 1000 1000
+           1000 1000;
+         test_create_proj_position "create projectile at negative position"
+           (-10) (-20) (-5) (-5) (-10) (-20);
+         test_create_proj_velocity "create projectile with negative velocity"
+           (-10) (-20) (-5) (-5) (-5) (-5);
+         test_create_proj_position
+           "create projectile at very large position with zero velocity" max_int
+           max_int 0 0 max_int max_int;
+         test_create_proj_velocity
+           "create projectile with very large positive velocity" 0 0 max_int
+           max_int max_int max_int;
+         test_create_proj_velocity
+           "create projectile with very large negative velocity" 0 0 (-max_int)
+           (-max_int) (-max_int) (-max_int);
+         test_create_proj_position
+           "create projectile with mixed large positive and negative position"
+           max_int (-max_int) 0 0 max_int (-max_int);
          test_move_proj "move projectile from origin with velocity (0,0)"
            (create_proj 0 0 0 0) 0 0;
          test_move_proj "move projectile with positive velocity"
@@ -189,66 +280,18 @@ let tests =
          test_in_bounds "large projectile within large bounds"
            (create_proj 1000 1000 0 0)
            2000 2000 true;
-         test_of_key "of_key for 'w'" 'w' (Some up);
-         test_of_key "of_key for 's'" 's' (Some down);
-         test_of_key "of_key for 'a'" 'a' (Some left);
-         test_of_key "of_key for 'd'" 'd' (Some right);
-         test_of_key "of_key for invalid key 'x'" 'x' None;
-         test_of_key "of_key for numeric key '1'" '1' None;
-         test_of_key "of_key for special character '@'" '@' None;
-         test_move_player_x "move player by (0,0) does not change x"
-           (create_player 5 5 10 10) 0 0 5;
-         test_move_player_y "move player by (0,0) does not change y"
-           (create_player 5 5 10 10) 0 0 5;
-         test_move_player_x "move player by (2,3) updates x correctly"
-           (create_player 1 1 10 10) 2 3 3;
-         test_move_player_y "move player by (2,3) updates y correctly"
-           (create_player 1 1 10 10) 2 3 4;
-         test_move_player_x "move player to large positive x-coordinate"
-           (create_player 0 0 10 10) 1000 0 1000;
-         test_move_player_y "move player to large positive y-coordinate"
-           (create_player 0 0 10 10) 0 1000 1000;
-         test_move_player_x "move player to negative x-coordinate"
-           (create_player 0 0 10 10) (-5) 0 (-5);
-         test_move_player_y "move player to negative y-coordinate"
-           (create_player 0 0 10 10) 0 (-5) (-5);
-         test_move_player_x "move player by large negative x-coordinate"
-           (create_player 1000 1000 10 10)
-           (-2000) 0 (-1000);
-         test_move_player_y "move player by large negative y-coordinate"
-           (create_player 1000 1000 10 10)
-           0 (-2000) (-1000);
-         test_get_corners_height "get corners of player updates height"
-           (create_player 0 0 10 20) 10;
-         test_get_corners_width "get corners of player updates width"
-           (create_player 0 0 10 20) 20;
-         test_get_corners_height "get corners of large player updates height"
-           (create_player 1000 2000 500 500)
-           1500;
-         test_get_corners_width "get corners of large player updates width"
-           (create_player 1000 2000 500 500)
-           2500;
-         test_get_corners_height
-           "get corners of negative position updates height"
-           (create_player (-10) (-20) 15 25)
-           5;
-         test_get_corners_width "get corners of negative position updates width"
-           (create_player (-10) (-20) 15 25)
-           5;
-         test_create_proj_position
-           "create projectile at origin with zero velocity" 0 0 0 0 0 0;
-         test_create_proj_velocity "create projectile with positive velocity" 10
-           20 5 5 5 5;
-         test_create_proj_position
-           "create projectile with large position values" 10000 20000 50 50
-           10000 20000;
-         test_create_proj_velocity
-           "create projectile with large velocity values" 10000 20000 1000 1000
-           1000 1000;
-         test_create_proj_position "create projectile at negative position"
-           (-10) (-20) (-5) (-5) (-10) (-20);
-         test_create_proj_velocity "create projectile with negative velocity"
-           (-10) (-20) (-5) (-5) (-5) (-5);
+         test_in_bounds "projectile exactly at top-left corner"
+           (create_proj 0 0 0 0) 10 10 true;
+         test_in_bounds "projectile exactly at bottom-right corner"
+           (create_proj 10 10 0 0) 10 10 false;
+         test_in_bounds "projectile slightly outside top-left corner"
+           (create_proj (-1) (-1) 0 0)
+           10 10 false;
+         test_in_bounds "projectile slightly outside bottom-right corner"
+           (create_proj 11 11 0 0) 10 10 false;
+         test_in_bounds "projectile within a very large screen"
+           (create_proj 10000 10000 0 0)
+           max_int max_int true;
          test_get_position_x "get x-position of projectile at origin"
            (create_proj 0 0 0 0) 0;
          test_get_position_y "get y-position of projectile at origin"
@@ -267,58 +310,6 @@ let tests =
            "get y-position of projectile at negative coordinates"
            (create_proj (-10) (-20) (-5) (-5))
            (-20);
-         test_to_delta_dx "to_delta for up gives dx=0" up 0;
-         test_to_delta_dy "to_delta for up gives dy=5" up 5;
-         test_to_delta_dx "to_delta for down gives dx=0" down 0;
-         test_to_delta_dy "to_delta for down gives dy=-5" down (-5);
-         test_to_delta_dx "to_delta for left gives dx=-5" left (-5);
-         test_to_delta_dy "to_delta for left gives dy=0" left 0;
-         test_to_delta_dx "to_delta for right gives dx=5" right 5;
-         test_to_delta_dy "to_delta for right gives dy=0" right 0;
-         test_move_player_x "move player by very large positive dx"
-           (create_player 0 0 10 10) max_int 0 max_int;
-         test_move_player_y "move player by very large positive dy"
-           (create_player 0 0 10 10) 0 max_int max_int;
-         test_move_player_x "move player by very large negative dx"
-           (create_player max_int max_int 10 10)
-           (-max_int) 0 0;
-         test_move_player_y "move player by very large negative dy"
-           (create_player max_int max_int 10 10)
-           0 (-max_int) 0;
-         test_get_corners_height "get corners with very large height"
-           (create_player 0 0 max_int 20)
-           max_int;
-         test_get_corners_width "get corners with very large width"
-           (create_player 0 0 10 max_int)
-           max_int;
-         test_get_corners_height "get corners with zero height"
-           (create_player 0 0 0 20) 0;
-         test_get_corners_width "get corners with zero width"
-           (create_player 0 0 10 0) 0;
-         test_create_proj_position
-           "create projectile at very large position with zero velocity" max_int
-           max_int 0 0 max_int max_int;
-         test_create_proj_velocity
-           "create projectile with very large positive velocity" 0 0 max_int
-           max_int max_int max_int;
-         test_create_proj_velocity
-           "create projectile with very large negative velocity" 0 0 (-max_int)
-           (-max_int) (-max_int) (-max_int);
-         test_create_proj_position
-           "create projectile with mixed large positive and negative position"
-           max_int (-max_int) 0 0 max_int (-max_int);
-         test_in_bounds "projectile exactly at top-left corner"
-           (create_proj 0 0 0 0) 10 10 true;
-         test_in_bounds "projectile exactly at bottom-right corner"
-           (create_proj 10 10 0 0) 10 10 false;
-         test_in_bounds "projectile slightly outside top-left corner"
-           (create_proj (-1) (-1) 0 0)
-           10 10 false;
-         test_in_bounds "projectile slightly outside bottom-right corner"
-           (create_proj 11 11 0 0) 10 10 false;
-         test_in_bounds "projectile within a very large screen"
-           (create_proj 10000 10000 0 0)
-           max_int max_int true;
          test_get_position_x "get x-position of projectile at max_int"
            (create_proj max_int 0 0 0)
            max_int;
@@ -331,6 +322,21 @@ let tests =
          test_get_position_y "get y-position of projectile at -max_int"
            (create_proj 0 (-max_int) 0 0)
            (-max_int);
+         test_to_delta_dx "to_delta for up gives dx=0" up 0;
+         test_to_delta_dy "to_delta for up gives dy=5" up 5;
+         test_to_delta_dx "to_delta for down gives dx=0" down 0;
+         test_to_delta_dy "to_delta for down gives dy=-5" down (-5);
+         test_to_delta_dx "to_delta for left gives dx=-5" left (-5);
+         test_to_delta_dy "to_delta for left gives dy=0" left 0;
+         test_to_delta_dx "to_delta for right gives dx=5" right 5;
+         test_to_delta_dy "to_delta for right gives dy=0" right 0;
+         test_of_key "of_key for 'w'" 'w' (Some up);
+         test_of_key "of_key for 's'" 's' (Some down);
+         test_of_key "of_key for 'a'" 'a' (Some left);
+         test_of_key "of_key for 'd'" 'd' (Some right);
+         test_of_key "of_key for invalid key 'x'" 'x' None;
+         test_of_key "of_key for numeric key '1'" '1' None;
+         test_of_key "of_key for special character '@'" '@' None;
          test_of_key "of_key for empty character" '\000' None;
          test_of_key "of_key for extended ASCII character" '\255' None;
          test_of_key "of_key for uppercase 'W'" 'W' None;
