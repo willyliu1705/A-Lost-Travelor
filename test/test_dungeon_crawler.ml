@@ -10,27 +10,27 @@ let string_of_option = function
   | None -> "None"
 
 (** [test_current_x name input expected_output] is a test case with [name] and
-    checks if the current x of the player [input] is equal to [expected_output]. *)
+    checks if the current x of the player [input] is equal to [expected_x]. *)
 let test_current_x name input expected_x =
   name >:: fun _ ->
   assert_equal expected_x (current_x_pos input) ~printer:string_of_int
 
 (** [test_current_y name input expected_output] is a test case with [name] and
-    checks if the current y of the player [input] is equal to [expected_output]. *)
+    checks if the current y of the player [input] is equal to [expected_y]. *)
 let test_current_y name input expected_y =
   name >:: fun _ ->
   assert_equal expected_y (current_y_pos input) ~printer:string_of_int
 
 (** [test_get_height name input expected_ouput] is a test case with [name] and
     checks if the current height of the player [input] is equal to
-    [expected_output]. *)
+    [expected_height]. *)
 let test_get_height name input expected_height =
   name >:: fun _ ->
   assert_equal expected_height (get_height input) ~printer:string_of_int
 
 (** [test_get_width name input expected_ouput] is a test case with [name] and
     checks if the current width of the player [input] is equal to
-    [expected_output]. *)
+    [expected_width]. *)
 let test_get_width name input expected_width =
   name >:: fun _ ->
   assert_equal expected_width (get_width input) ~printer:string_of_int
@@ -73,12 +73,14 @@ let test_move_proj name proj expected_x expected_y =
   assert_equal (expected_x, expected_y) (get_position moved_proj)
     ~printer:string_of_tuple
 
-(** [test_in_bounds name proj width height expected] is a test case with [name]
-    that checks if the projectile [proj] is within the bounds defined by
+(** [test_in_bounds name proj width height expected_bool] is a test case with
+    [name] that checks if the projectile [proj] is within the bounds defined by
     ([width], [height]). *)
-let test_in_bounds name proj width height expected =
+let test_in_bounds name proj width height expected_bool =
   name >:: fun _ ->
-  assert_equal expected (in_bounds proj width height) ~printer:string_of_bool
+  assert_equal expected_bool
+    (in_bounds proj width height)
+    ~printer:string_of_bool
 
 (** [test_get_position name proj expected_x expected_y] is a test case with
     [name] that checks if the position of [proj] is ([expected_x],
