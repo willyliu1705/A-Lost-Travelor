@@ -275,6 +275,67 @@ let tests =
          test_to_delta_dy "to_delta for left gives dy=0" left 0;
          test_to_delta_dx "to_delta for right gives dx=5" right 5;
          test_to_delta_dy "to_delta for right gives dy=0" right 0;
+         test_move_player_x "move player by very large positive dx"
+           (create_player 0 0 10 10) max_int 0 max_int;
+         test_move_player_y "move player by very large positive dy"
+           (create_player 0 0 10 10) 0 max_int max_int;
+         test_move_player_x "move player by very large negative dx"
+           (create_player max_int max_int 10 10)
+           (-max_int) 0 0;
+         test_move_player_y "move player by very large negative dy"
+           (create_player max_int max_int 10 10)
+           0 (-max_int) 0;
+         test_get_corners_height "get corners with very large height"
+           (create_player 0 0 max_int 20)
+           max_int;
+         test_get_corners_width "get corners with very large width"
+           (create_player 0 0 10 max_int)
+           max_int;
+         test_get_corners_height "get corners with zero height"
+           (create_player 0 0 0 20) 0;
+         test_get_corners_width "get corners with zero width"
+           (create_player 0 0 10 0) 0;
+         test_create_proj_position
+           "create projectile at very large position with zero velocity" max_int
+           max_int 0 0 max_int max_int;
+         test_create_proj_velocity
+           "create projectile with very large positive velocity" 0 0 max_int
+           max_int max_int max_int;
+         test_create_proj_velocity
+           "create projectile with very large negative velocity" 0 0 (-max_int)
+           (-max_int) (-max_int) (-max_int);
+         test_create_proj_position
+           "create projectile with mixed large positive and negative position"
+           max_int (-max_int) 0 0 max_int (-max_int);
+         test_in_bounds "projectile exactly at top-left corner"
+           (create_proj 0 0 0 0) 10 10 true;
+         test_in_bounds "projectile exactly at bottom-right corner"
+           (create_proj 10 10 0 0) 10 10 false;
+         test_in_bounds "projectile slightly outside top-left corner"
+           (create_proj (-1) (-1) 0 0)
+           10 10 false;
+         test_in_bounds "projectile slightly outside bottom-right corner"
+           (create_proj 11 11 0 0) 10 10 false;
+         test_in_bounds "projectile within a very large screen"
+           (create_proj 10000 10000 0 0)
+           max_int max_int true;
+         test_get_position_x "get x-position of projectile at max_int"
+           (create_proj max_int 0 0 0)
+           max_int;
+         test_get_position_y "get y-position of projectile at max_int"
+           (create_proj 0 max_int 0 0)
+           max_int;
+         test_get_position_x "get x-position of projectile at -max_int"
+           (create_proj (-max_int) 0 0 0)
+           (-max_int);
+         test_get_position_y "get y-position of projectile at -max_int"
+           (create_proj 0 (-max_int) 0 0)
+           (-max_int);
+         test_of_key "of_key for empty character" '\000' None;
+         test_of_key "of_key for extended ASCII character" '\255' None;
+         test_of_key "of_key for uppercase 'W'" 'W' None;
+         test_of_key "of_key for lowercase 'z'" 'z' None;
+         test_of_key "of_key for unsupported special character '*'" '*' None;
        ]
 
 let _ = run_test_tt_main tests
