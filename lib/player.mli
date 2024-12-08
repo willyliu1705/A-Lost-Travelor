@@ -26,5 +26,5 @@ val get_width : t -> int
 
 val get_corners : t -> t
 (** [get_corners player] is a new player that has the same x,y-position as
-    [player], but the height is increased by the value of the y-coprdinate and
-    the width is increased by the value of the x-coordinate???. *)
+    [player], but the height is increased by the value of the x-coprdinate and
+    the width is increased by the value of the y-coordinate. *)
