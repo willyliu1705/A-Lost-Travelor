@@ -122,9 +122,3 @@ let () =
     open_graph " 1908x987";
     draw_screens keyword.word
   done
-
-(* let get_corners player = {}
-
-   let collision_check (obj1 : Dungeon_crawler.Player.t) (obj2:
-   Dungeon_crawler.Player.t) dx dy = let corners_obj1 = get_corners obj1 in let
-   corners_obj2 = get_corners obj2 in if corners_obj1 *)
