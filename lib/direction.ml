@@ -29,3 +29,9 @@ let of_key = function
   | 'a' -> Some Left
   | 'd' -> Some Right
   | _ -> None
+
+let direction_to_string = function
+  | Up -> "Up"
+  | Down -> "Down"
+  | Left -> "Left"
+  | Right -> "Right"

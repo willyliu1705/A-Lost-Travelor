@@ -11,7 +11,7 @@ let player1 = create_player 40 40 50 50
 let player_projectiles = ref []
 let enemy_projectiles = ref []
 let player_direction = ref right (* Change player default direction here *)
-let enemy = create_enemy 50 50 50 50
+let enemy = create_enemy 50 50 50 50 up
 let enemy_last_shot_time = ref 0.0
 let enemy_shoot_delay = 1.5 (* Change enemy shooting delay here *)
 
@@ -20,7 +20,8 @@ let draw_player player =
     (get_height player)
 
 let draw_enemy enemy =
-  let x, y = get_enemy_position enemy in
+  let x = enemy_x_pos enemy in
+  let y = enemy_y_pos enemy in
   let w = get_enemy_width enemy in
   let h = get_enemy_height enemy in
   set_color blue;

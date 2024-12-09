@@ -1,12 +1,16 @@
 type t
 (** Abstract type representing an enemy. *)
 
-val create_enemy : int -> int -> int -> int -> t
-(** [create_enemy x y w h] creates an enemy at position ([x], [y]) in Cartesian
-    coordinates with width [w] and height [h]. Requires: [w] > 0 and [h] > 0. *)
+val create_enemy : int -> int -> int -> int -> Direction.t -> t
+(** [create_enemy x y w h dir] creates an enemy at position ([x], [y]) in
+    Cartesian coordinates with width [w], height [h], and direction [dir].
+    Requires: [w] > 0 and [h] > 0. *)
 
-val get_enemy_position : t -> int * int
-(** [get_enemy_position enemy] is the (x, y) position of the enemy. *)
+val enemy_x_pos : t -> int
+(** [enemy_x_pos enemy] is the current x-coordinate of [enemy] on the xy-plane. *)
+
+val enemy_y_pos : t -> int
+(** [enemy_x_pos enemy] is the current y-coordinate of [enemy] on the xy-plane . *)
 
 val get_enemy_height : t -> int
 (** [get_enemy_height enemy] is the height of [enemy]. *)

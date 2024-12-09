@@ -30,3 +30,6 @@ val to_projectile_delta : t -> int * int
 val of_key : char -> t option
 (** [of_key key] maps a key press to a direction. Returns [Some direction] for
     valid keys and [None] otherwise. *)
+
+val direction_to_string : t -> string
+(** [direction_to_string direction] is the string representation of [direction]. *)
