@@ -31,5 +31,10 @@ val enemy_shoot :
     updating [last_shot_time]. *)
 
 val aligned_with_player : t -> int * int -> bool
-(** [aligned_with_player enemy (px, py)] checks if the player is aligned with
-    [enemy] based on [enemy]'s direction. *)
+(** [aligned_with_player enemy (px, py)] checks if the player's coordinates
+    [(px, py)] is aligned with [enemy] based on [enemy]'s direction. In other
+    words, if either of the player's x or y-coordinates are close in value to
+    the enemy's x or y-coordinates and the enemy is also facing in that specific
+    direction, then the enemy can "see" the player and any enemy actions will
+    subsequently begin. Once the player leaves that "line of sight", then enemy
+    action ceases. *)
