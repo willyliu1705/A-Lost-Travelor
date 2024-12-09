@@ -37,4 +37,4 @@ let aligned_with_player enemy (px, py) =
   | dir when dir = Direction.down -> px >= ex && px <= ex + ew && py < ey
   | dir when dir = Direction.left -> py >= ey && py <= ey + eh && px < ex
   | dir when dir = Direction.right -> py >= ey && py <= ey + eh && px > ex
-  | _ -> false
+  | _ -> false [@coverage off]

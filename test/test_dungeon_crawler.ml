@@ -2,6 +2,7 @@ open OUnit2
 open Dungeon_crawler.Player
 open Dungeon_crawler.Projectile
 open Dungeon_crawler.Direction
+open Dungeon_crawler.Enemy
 
 let string_of_tuple (x, y) = Printf.sprintf "(%d, %d)" x y
 
@@ -116,20 +117,36 @@ let test_get_position_y name proj expected_y =
   let _, actual_y = get_proj_position proj in
   assert_equal expected_y actual_y ~printer:string_of_int
 
-(** [test_to_delta_dx name dir expected_dx] is a test case with [name] that
-    checks if converting [dir] to a delta gives the expected x-coordinate
+(** [test_to_player_delta_dx name dir expected_dx] is a test case with [name]
+    that checks if converting [dir] to a delta gives the expected x-coordinate
     [expected_dx]. *)
-let test_to_delta_dx name dir expected_dx =
+let test_to_player_delta_dx name dir expected_dx =
   name >:: fun _ ->
   let actual_dx, _ = to_player_delta dir in
   assert_equal expected_dx actual_dx ~printer:string_of_int
 
-(** [test_to_delta_dy name dir expected_dy] is a test case with [name] that
-    checks if converting [dir] to a delta gives the expected y-coordinate
+(** [test_to_player_delta_dy name dir expected_dy] is a test case with [name]
+    that checks if converting [dir] to a delta gives the expected y-coordinate
     [expected_dy]. *)
-let test_to_delta_dy name dir expected_dy =
+let test_to_player_delta_dy name dir expected_dy =
   name >:: fun _ ->
   let _, actual_dy = to_player_delta dir in
+  assert_equal expected_dy actual_dy ~printer:string_of_int
+
+(** [test_to_projectile_delta_dx name direction expected_dx] tests that
+    converting [direction] to a projectile delta gives the expected x-coordinate
+    [expected_dx]. *)
+let test_to_projectile_delta_dx name direction expected_dx =
+  name >:: fun _ ->
+  let actual_dx, _ = to_projectile_delta direction in
+  assert_equal expected_dx actual_dx ~printer:string_of_int
+
+(** [test_to_projectile_delta_dy name direction expected_dy] tests that
+    converting [direction] to a projectile delta gives the expected y-coordinate
+    [expected_dy]. *)
+let test_to_projectile_delta_dy name direction expected_dy =
+  name >:: fun _ ->
+  let _, actual_dy = to_projectile_delta direction in
   assert_equal expected_dy actual_dy ~printer:string_of_int
 
 (** [test_of_key name key expected_direction] is a test case with [name] that
@@ -137,6 +154,69 @@ let test_to_delta_dy name dir expected_dy =
 let test_of_key name key expected_direction =
   name >:: fun _ ->
   assert_equal expected_direction (of_key key) ~printer:string_of_option
+
+(** [test_enemy_x_pos name input expected_x] tests that the x-coordinate of
+    [enemy] matches [expected_x]. *)
+let test_enemy_x_pos name enemy expected_x =
+  name >:: fun _ ->
+  assert_equal expected_x (enemy_x_pos enemy) ~printer:string_of_int
+
+(** [test_enemy_y_pos name input expected_y] tests that the y-coordinate of
+    [enemy] matches [expected_y]. *)
+let test_enemy_y_pos name enemy expected_y =
+  name >:: fun _ ->
+  assert_equal expected_y (enemy_y_pos enemy) ~printer:string_of_int
+
+(** [test_get_enemy_height name input expected_height] tests that the height of
+    [enemy] matches [expected_height]. *)
+let test_get_enemy_height name enemy expected_height =
+  name >:: fun _ ->
+  assert_equal expected_height (get_enemy_height enemy) ~printer:string_of_int
+
+(** [test_get_enemy_width name input expected_width] tests that the width of
+    [enemy] matches [expected_width]. *)
+let test_get_enemy_width name enemy expected_width =
+  name >:: fun _ ->
+  assert_equal expected_width (get_enemy_width enemy) ~printer:string_of_int
+
+(** [test_get_direction name enemy expected_dir] tests that the direction of
+    [enemy] matches [expected_dir]. *)
+let test_get_direction name enemy expected_dir =
+  name >:: fun _ ->
+  assert_equal expected_dir (get_direction enemy) ~printer:direction_to_string
+
+(** [test_set_direction name enemy new_dir] tests that setting the direction of
+    [enemy] to [new_dir] correctly updates the direction. *)
+let test_set_direction name enemy new_dir =
+  name >:: fun _ ->
+  let () = set_direction enemy new_dir in
+  assert_equal new_dir (get_direction enemy) ~printer:direction_to_string
+
+(** [test_aligned_with_player name enemy px py expected] tests whether the enemy
+    is aligned with the player at ([px], [py]). *)
+let test_aligned_with_player name enemy px py expected =
+  name >:: fun _ ->
+  assert_equal expected
+    (aligned_with_player enemy (px, py))
+    ~printer:string_of_bool
+
+(** [test_enemy_shoot name enemy projectiles_ref last_shot_time delay current_time expected_len]
+    tests whether the enemy shoots a projectile if conditions are met, checking
+    the length of the projectile list. *)
+let test_enemy_shoot name enemy projectiles_ref last_shot_time delay
+    current_time expected_len =
+  name >:: fun _ ->
+  let () =
+    enemy_shoot enemy projectiles_ref last_shot_time delay current_time
+  in
+  assert_equal expected_len
+    (List.length !projectiles_ref)
+    ~printer:string_of_int
+
+let projectiles = ref []
+let last_shot_time = ref 0.0
+let current_time = 5.0
+let delay = 2.0
 
 let tests =
   "test suite"
@@ -181,6 +261,14 @@ let tests =
            (create_player 1 1 10 10) 2 3 3;
          test_move_player_y "move player by (2,3) updates y correctly"
            (create_player 1 1 10 10) 2 3 4;
+         test_move_player_x "move player by very small positive dx"
+           (create_player 0 0 10 10) 1 0 1;
+         test_move_player_y "move player by very small positive dy"
+           (create_player 0 0 10 10) 0 1 1;
+         test_move_player_x "move player by very small negative dx"
+           (create_player 2 2 10 10) (-1) 0 1;
+         test_move_player_y "move player by very small negative dy"
+           (create_player 3 3 10 10) 0 (-1) 2;
          test_move_player_x "move player to large positive x-coordinate"
            (create_player 0 0 10 10) 1000 0 1000;
          test_move_player_y "move player to large positive y-coordinate"
@@ -255,9 +343,15 @@ let tests =
          test_create_proj_velocity
            "create projectile with very large negative velocity" 0 0 (-max_int)
            (-max_int) (-max_int) (-max_int);
+         test_create_proj_velocity "create projectile with dx=0 and dy=non-zero"
+           10 20 0 3 0 3;
+         test_create_proj_velocity "create projectile with dx=non-zero and dy=0"
+           10 20 (-3) 0 (-3) 0;
          test_create_proj_position
            "create projectile with mixed large positive and negative position"
            max_int (-max_int) 0 0 max_int (-max_int);
+         test_create_proj_position "create projectile with mixed dx and dy" 10
+           20 3 (-4) 10 20;
          test_move_proj "move projectile from origin with velocity (0,0)"
            (create_proj 0 0 0 0) 0 0;
          test_move_proj "move projectile with positive velocity"
@@ -275,6 +369,9 @@ let tests =
            10 10 false;
          test_in_bounds "projectile out of bounds" (create_proj 11 11 0 0) 10 10
            false;
+         test_in_bounds "projectile far out of bounds"
+           (create_proj 1000 1000 0 0)
+           10 10 false;
          test_in_bounds "negative projectile out of bounds"
            (create_proj (-1) (-1) 0 0)
            10 10 false;
@@ -323,14 +420,38 @@ let tests =
          test_get_position_y "get y-position of projectile at -max_int"
            (create_proj 0 (-max_int) 0 0)
            (-max_int);
-         test_to_delta_dx "to_delta for up gives dx=0" up 0;
-         test_to_delta_dy "to_delta for up gives dy=5" up player_speed;
-         test_to_delta_dx "to_delta for down gives dx=0" down 0;
-         test_to_delta_dy "to_delta for down gives dy=-5" down (-player_speed);
-         test_to_delta_dx "to_delta for left gives dx=-5" left (-player_speed);
-         test_to_delta_dy "to_delta for left gives dy=0" left 0;
-         test_to_delta_dx "to_delta for right gives dx=5" right player_speed;
-         test_to_delta_dy "to_delta for right gives dy=0" right 0;
+         test_to_player_delta_dx "to_delta for up gives dx=0" up 0;
+         test_to_player_delta_dy "to_delta for up gives dy=player_speed" up
+           player_speed;
+         test_to_player_delta_dx "to_delta for down gives dx=0" down 0;
+         test_to_player_delta_dy "to_delta for down gives dy=-player_speed" down
+           (-player_speed);
+         test_to_player_delta_dx "to_delta for left gives dx=-player_speed" left
+           (-player_speed);
+         test_to_player_delta_dy "to_delta for left gives dy=0" left 0;
+         test_to_player_delta_dx "to_delta for right gives dx=player_speed"
+           right player_speed;
+         test_to_player_delta_dy "to_delta for right gives dy=0" right 0;
+         test_to_projectile_delta_dx "to_projectile_delta for up gives dx=0" up
+           0;
+         test_to_projectile_delta_dy
+           "to_projectile_delta for up gives dy=projectile_speed" up
+           projectile_speed;
+         test_to_projectile_delta_dx "to_projectile_delta for down gives dx=0"
+           down 0;
+         test_to_projectile_delta_dy
+           "to_projectile_delta for down gives dy=-projectile_speed" down
+           (-projectile_speed);
+         test_to_projectile_delta_dx
+           "to_projectile_delta for left gives dx=-projectile_speed" left
+           (-projectile_speed);
+         test_to_projectile_delta_dy "to_projectile_delta for left gives dy=0"
+           left 0;
+         test_to_projectile_delta_dx
+           "to_projectile_delta for right gives dx=projectile_speed" right
+           projectile_speed;
+         test_to_projectile_delta_dy "to_projectile_delta for right gives dy=0"
+           right 0;
          test_of_key "of_key for 'w'" 'w' (Some up);
          test_of_key "of_key for 's'" 's' (Some down);
          test_of_key "of_key for 'a'" 'a' (Some left);
@@ -343,6 +464,130 @@ let tests =
          test_of_key "of_key for uppercase 'W'" 'W' None;
          test_of_key "of_key for lowercase 'z'" 'z' None;
          test_of_key "of_key for unsupported special character '*'" '*' None;
+         test_enemy_x_pos "enemy at origin has x=0"
+           (create_enemy 0 0 10 10 up)
+           0;
+         test_enemy_x_pos "enemy at positive x=50"
+           (create_enemy 50 0 10 10 up)
+           50;
+         test_enemy_x_pos "enemy at negative x=-30"
+           (create_enemy (-30) 0 10 10 up)
+           (-30);
+         test_enemy_x_pos "enemy at large positive x=10000"
+           (create_enemy 10000 0 10 10 up)
+           10000;
+         test_enemy_x_pos "enemy at large negative x=-10000"
+           (create_enemy (-10000) 0 10 10 up)
+           (-10000);
+         test_enemy_y_pos "enemy at origin has y=0"
+           (create_enemy 0 0 10 10 up)
+           0;
+         test_enemy_y_pos "enemy at positive y=50"
+           (create_enemy 0 50 10 10 up)
+           50;
+         test_enemy_y_pos "enemy at negative y=-30"
+           (create_enemy 0 (-30) 10 10 up)
+           (-30);
+         test_enemy_y_pos "enemy at large positive y=10000"
+           (create_enemy 0 10000 10 10 up)
+           10000;
+         test_enemy_y_pos "enemy at large negative y=-10000"
+           (create_enemy 0 (-10000) 10 10 up)
+           (-10000);
+         test_get_enemy_height "enemy with height 10"
+           (create_enemy 0 0 10 10 up)
+           10;
+         test_get_enemy_height "enemy with height 50"
+           (create_enemy 0 0 10 50 up)
+           50;
+         test_get_enemy_height "enemy with height 0 (invalid)"
+           (create_enemy 0 0 10 0 up) 0;
+         test_get_enemy_width "enemy with width 10"
+           (create_enemy 0 0 10 10 up)
+           10;
+         test_get_enemy_width "enemy with width 50"
+           (create_enemy 0 0 50 10 up)
+           50;
+         test_get_enemy_width "enemy with width 0 (invalid)"
+           (create_enemy 0 0 0 10 up) 0;
+         test_get_direction "enemy facing up" (create_enemy 0 0 10 10 up) up;
+         test_get_direction "enemy facing down"
+           (create_enemy 0 0 10 10 down)
+           down;
+         test_get_direction "enemy facing left"
+           (create_enemy 0 0 10 10 left)
+           left;
+         test_get_direction "enemy facing right"
+           (create_enemy 0 0 10 10 right)
+           right;
+         test_set_direction "set enemy direction to up"
+           (create_enemy 0 0 10 10 up)
+           up;
+         test_set_direction "set enemy direction to down"
+           (create_enemy 0 0 10 10 up)
+           down;
+         test_set_direction "set enemy direction to left"
+           (create_enemy 0 0 10 10 up)
+           left;
+         test_set_direction "set enemy direction to right"
+           (create_enemy 0 0 10 10 up)
+           right;
+         test_aligned_with_player "player directly above enemy is aligned"
+           (create_enemy 50 50 10 10 up)
+           55 70 true;
+         test_aligned_with_player
+           "player not in line above enemy is not aligned"
+           (create_enemy 50 50 10 10 up)
+           45 70 false;
+         test_aligned_with_player
+           "player aligned with enemy facing up but far away should still align"
+           (create_enemy 50 50 10 10 up)
+           55 500 true;
+         test_aligned_with_player "player directly below enemy is aligned"
+           (create_enemy 50 50 10 10 down)
+           55 30 true;
+         test_aligned_with_player
+           "player not in line below enemy is not aligned"
+           (create_enemy 50 50 10 10 down)
+           65 30 false;
+         test_aligned_with_player
+           "player aligned with enemy facing down but far away should still \
+            align"
+           (create_enemy 50 50 10 10 down)
+           55 (-500) true;
+         test_aligned_with_player "player directly left of enemy is aligned"
+           (create_enemy 50 50 10 10 left)
+           40 55 true;
+         test_aligned_with_player
+           "player not in line left of enemy is not aligned"
+           (create_enemy 50 50 10 10 left)
+           40 65 false;
+         test_aligned_with_player
+           "player aligned with enemy facing left but far away should still \
+            align"
+           (create_enemy 50 50 10 10 left)
+           (-500) 50 true;
+         test_aligned_with_player "player directly right of enemy is aligned"
+           (create_enemy 50 50 10 10 right)
+           70 55 true;
+         test_aligned_with_player
+           "player not in line right of enemy is not aligned"
+           (create_enemy 50 50 10 10 right)
+           70 65 false;
+         test_aligned_with_player
+           "player aligned with enemy facing right but far away should still \
+            align"
+           (create_enemy 50 50 10 10 right)
+           500 50 true;
+         test_enemy_shoot "enemy shoots when delay is satisfied"
+           (create_enemy 50 50 10 10 up)
+           projectiles last_shot_time delay current_time 1;
+         test_enemy_shoot "enemy does not shoot if delay is not satisfied"
+           (create_enemy 50 50 10 10 up)
+           projectiles last_shot_time delay 5.5 1;
+         test_enemy_shoot "enemy shoots twice after enough delay"
+           (create_enemy 50 50 10 10 up)
+           projectiles last_shot_time delay 8.0 2;
        ]
 
 let _ = run_test_tt_main tests
