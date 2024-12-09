@@ -16,8 +16,8 @@ let enemy_last_shot_time = ref 0.0
 let enemy_shoot_delay = 1.5 (* Change enemy shooting delay here *)
 
 let draw_player player =
-  draw_rect (current_x_pos player) (current_y_pos player) (get_height player)
-    (get_width player)
+  draw_rect (current_x_pos player) (current_y_pos player) (get_width player)
+    (get_height player)
 
 let draw_enemy enemy =
   let x, y = get_enemy_position enemy in

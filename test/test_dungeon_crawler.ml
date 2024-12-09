@@ -73,7 +73,7 @@ let test_get_corners_width name player expected_width =
 let test_create_proj_position name x y dx dy expected_x expected_y =
   name >:: fun _ ->
   let proj = create_proj x y dx dy in
-  assert_equal (expected_x, expected_y) (get_position proj)
+  assert_equal (expected_x, expected_y) (get_proj_position proj)
     ~printer:string_of_tuple
 
 (** [test_create_proj_velocity name x y dx dy expected_dx expected_dy] is a test
@@ -89,7 +89,8 @@ let test_create_proj_velocity name x y dx dy expected_dx expected_dy =
 let test_move_proj name proj expected_x expected_y =
   name >:: fun _ ->
   let moved_proj = move_proj proj in
-  assert_equal (expected_x, expected_y) (get_position moved_proj)
+  assert_equal (expected_x, expected_y)
+    (get_proj_position moved_proj)
     ~printer:string_of_tuple
 
 (** [test_in_bounds name proj width height expected_bool] is a test case with
@@ -105,14 +106,14 @@ let test_in_bounds name proj width height expected_bool =
     checks if the x-position of [proj] is [expected_x]. *)
 let test_get_position_x name proj expected_x =
   name >:: fun _ ->
-  let actual_x, _ = get_position proj in
+  let actual_x, _ = get_proj_position proj in
   assert_equal expected_x actual_x ~printer:string_of_int
 
 (** [test_get_position_y name proj expected_y] is a test case with [name] that
     checks if the y-position of [proj] is [expected_y]. *)
 let test_get_position_y name proj expected_y =
   name >:: fun _ ->
-  let _, actual_y = get_position proj in
+  let _, actual_y = get_proj_position proj in
   assert_equal expected_y actual_y ~printer:string_of_int
 
 (** [test_to_delta_dx name dir expected_dx] is a test case with [name] that
@@ -162,16 +163,16 @@ let tests =
          test_current_y "player at large negative y=-10000"
            (create_player 0 (-10000) 20 20)
            (-10000);
-         test_get_height "player with height 1" (create_player 0 2 1 2) 1;
+         test_get_height "player with height 1" (create_player 0 2 2 1) 1;
          test_get_height "player with height 100"
-           (create_player 4 92 100 22)
+           (create_player 4 92 22 100)
            100;
          test_get_height "player with height 0 (invalid)"
-           (create_player 4 92 0 22) 0;
-         test_get_width "player with width 22" (create_player 4 92 28 22) 22;
-         test_get_width "player with width 50" (create_player 4 92 28 50) 50;
+           (create_player 4 92 22 0) 0;
+         test_get_width "player with width 22" (create_player 4 92 22 28) 22;
+         test_get_width "player with width 50" (create_player 4 92 50 28) 50;
          test_get_width "player with width 0 (invalid)"
-           (create_player 4 92 28 0) 0;
+           (create_player 4 92 0 28) 0;
          test_move_player_x "move player by (0,0) does not change x"
            (create_player 5 5 10 10) 0 0 5;
          test_move_player_y "move player by (0,0) does not change y"
@@ -205,9 +206,9 @@ let tests =
            (create_player max_int max_int 10 10)
            0 (-max_int) 0;
          test_get_corners_height "get corners of player updates height"
-           (create_player 0 0 10 20) 10;
+           (create_player 0 0 20 10) 10;
          test_get_corners_width "get corners of player updates width"
-           (create_player 0 0 10 20) 20;
+           (create_player 0 0 20 10) 20;
          test_get_corners_height "get corners of large player updates height"
            (create_player 1000 2000 500 500)
            1500;
@@ -217,20 +218,20 @@ let tests =
          test_get_corners_height
            "get corners of negative position updates height"
            (create_player (-10) (-20) 15 25)
-           5;
+           15;
          test_get_corners_width "get corners of negative position updates width"
            (create_player (-10) (-20) 15 25)
-           5;
+           (-5);
          test_get_corners_height "get corners with very large height"
-           (create_player 0 0 max_int 20)
+           (create_player 0 0 20 max_int)
            max_int;
          test_get_corners_width "get corners with very large width"
-           (create_player 0 0 10 max_int)
+           (create_player 0 0 max_int 10)
            max_int;
          test_get_corners_height "get corners with zero height"
-           (create_player 0 0 0 20) 0;
+           (create_player 0 0 20 0) 0;
          test_get_corners_width "get corners with zero width"
-           (create_player 0 0 10 0) 0;
+           (create_player 0 0 0 10) 0;
          test_create_proj_position
            "create projectile at origin with zero velocity" 0 0 0 0 0 0;
          test_create_proj_velocity "create projectile with positive velocity" 10
@@ -323,12 +324,12 @@ let tests =
            (create_proj 0 (-max_int) 0 0)
            (-max_int);
          test_to_delta_dx "to_delta for up gives dx=0" up 0;
-         test_to_delta_dy "to_delta for up gives dy=5" up 5;
+         test_to_delta_dy "to_delta for up gives dy=5" up player_speed;
          test_to_delta_dx "to_delta for down gives dx=0" down 0;
-         test_to_delta_dy "to_delta for down gives dy=-5" down (-5);
-         test_to_delta_dx "to_delta for left gives dx=-5" left (-5);
+         test_to_delta_dy "to_delta for down gives dy=-5" down (-player_speed);
+         test_to_delta_dx "to_delta for left gives dx=-5" left (-player_speed);
          test_to_delta_dy "to_delta for left gives dy=0" left 0;
-         test_to_delta_dx "to_delta for right gives dx=5" right 5;
+         test_to_delta_dx "to_delta for right gives dx=5" right player_speed;
          test_to_delta_dy "to_delta for right gives dy=0" right 0;
          test_of_key "of_key for 'w'" 'w' (Some up);
          test_of_key "of_key for 's'" 's' (Some down);

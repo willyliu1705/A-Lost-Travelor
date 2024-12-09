@@ -13,6 +13,12 @@ val left : t
 val right : t
 (** The direction Right. *)
 
+val player_speed : int
+(** [player_speed] is the speed of the player. *)
+
+val projectile_speed : int
+(** [projectile_speed] is the speed of a projectile. *)
+
 val to_player_delta : t -> int * int
 (** [to_player_delta direction] converts a direction to a tuple representing the
     change in coordinates (dx, dy). *)
