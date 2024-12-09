@@ -120,7 +120,7 @@ let test_get_position_y name proj expected_y =
     [expected_dx]. *)
 let test_to_delta_dx name dir expected_dx =
   name >:: fun _ ->
-  let actual_dx, _ = to_delta dir in
+  let actual_dx, _ = to_player_delta dir in
   assert_equal expected_dx actual_dx ~printer:string_of_int
 
 (** [test_to_delta_dy name dir expected_dy] is a test case with [name] that
@@ -128,7 +128,7 @@ let test_to_delta_dx name dir expected_dx =
     [expected_dy]. *)
 let test_to_delta_dy name dir expected_dy =
   name >:: fun _ ->
-  let _, actual_dy = to_delta dir in
+  let _, actual_dy = to_player_delta dir in
   assert_equal expected_dy actual_dy ~printer:string_of_int
 
 (** [test_of_key name key expected_direction] is a test case with [name] that

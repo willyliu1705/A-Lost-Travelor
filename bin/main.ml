@@ -9,14 +9,14 @@ let keyword = { word = "Start Menu" }
 let player1 = create_player 40 40 50 50
 let player_projectiles = ref []
 let enemy_projectiles = ref []
-let player_direction = ref right
-let enemy_direction = ref up
+let player_direction = ref right (* Change player default direction here *)
+let enemy_direction = ref up (* Change enemy default direction here *)
 let enemy_x = 50
 let enemy_y = 50
 let enemy_width = 50
 let enemy_height = 50
 let enemy_last_shot_time = ref 0.0
-let enemy_shoot_delay = 2.0
+let enemy_shoot_delay = 2.0 (* Change enemy shooting delay here *)
 
 let draw_player player =
   draw_rect (current_x_pos player) (current_y_pos player) (get_height player)
@@ -41,7 +41,7 @@ let move_projectiles projectiles =
   |> List.filter (fun p -> in_bounds p screen_width screen_height)
 
 let shoot player projectiles_ref direction =
-  let dx, dy = to_delta direction in
+  let dx, dy = to_projectile_delta direction in
   let new_projectile =
     create_proj
       (current_x_pos player + (get_width player / 2))
@@ -53,7 +53,7 @@ let shoot player projectiles_ref direction =
 let enemy_shoot () =
   let current_time = Unix.gettimeofday () in
   if current_time -. !enemy_last_shot_time >= enemy_shoot_delay then (
-    let dx, dy = to_delta !enemy_direction in
+    let dx, dy = to_projectile_delta !enemy_direction in
     let new_projectile =
       create_proj
         (enemy_x + (enemy_width / 2))
@@ -85,7 +85,7 @@ let update_player player =
         match of_key key with
         | Some dir ->
             player_direction := dir;
-            let dx, dy = to_delta dir in
+            let dx, dy = to_player_delta dir in
             move_player player dx dy
         | None ->
             if key = ' ' then shoot player player_projectiles !player_direction)
