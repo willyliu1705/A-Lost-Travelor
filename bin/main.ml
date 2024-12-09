@@ -15,6 +15,8 @@ let enemy_x = 50
 let enemy_y = 50
 let enemy_width = 50
 let enemy_height = 50
+let enemy_last_shot_time = ref 0.0
+let enemy_shoot_delay = 2.0
 
 let draw_player player =
   draw_rect (current_x_pos player) (current_y_pos player) (get_height player)
@@ -49,14 +51,17 @@ let shoot player projectiles_ref direction =
   projectiles_ref := new_projectile :: !projectiles_ref
 
 let enemy_shoot () =
-  let dx, dy = to_delta !enemy_direction in
-  let new_projectile =
-    create_proj
-      (enemy_x + (enemy_width / 2))
-      (enemy_y + (enemy_height / 2))
-      dx dy
-  in
-  enemy_projectiles := new_projectile :: !enemy_projectiles
+  let current_time = Unix.gettimeofday () in
+  if current_time -. !enemy_last_shot_time >= enemy_shoot_delay then (
+    let dx, dy = to_delta !enemy_direction in
+    let new_projectile =
+      create_proj
+        (enemy_x + (enemy_width / 2))
+        (enemy_y + (enemy_height / 2))
+        dx dy
+    in
+    enemy_projectiles := new_projectile :: !enemy_projectiles;
+    enemy_last_shot_time := current_time)
 
 let player_aligned_with_enemy () =
   let px, py = (current_x_pos player1, current_y_pos player1) in
