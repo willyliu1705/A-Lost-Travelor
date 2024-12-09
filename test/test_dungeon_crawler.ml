@@ -540,7 +540,7 @@ let tests =
            (create_enemy 50 50 10 10 up)
            45 70 false;
          test_aligned_with_player
-           "player aligned with enemy facing up but far away should still align"
+           "player aligned with enemy facing up but far away"
            (create_enemy 50 50 10 10 up)
            55 500 true;
          test_aligned_with_player "player directly below enemy is aligned"
@@ -551,8 +551,7 @@ let tests =
            (create_enemy 50 50 10 10 down)
            65 30 false;
          test_aligned_with_player
-           "player aligned with enemy facing down but far away should still \
-            align"
+           "player aligned with enemy facing down but far away"
            (create_enemy 50 50 10 10 down)
            55 (-500) true;
          test_aligned_with_player "player directly left of enemy is aligned"
@@ -563,8 +562,7 @@ let tests =
            (create_enemy 50 50 10 10 left)
            40 65 false;
          test_aligned_with_player
-           "player aligned with enemy facing left but far away should still \
-            align"
+           "player aligned with enemy facing left but far away"
            (create_enemy 50 50 10 10 left)
            (-500) 50 true;
          test_aligned_with_player "player directly right of enemy is aligned"
@@ -575,8 +573,7 @@ let tests =
            (create_enemy 50 50 10 10 right)
            70 65 false;
          test_aligned_with_player
-           "player aligned with enemy facing right but far away should still \
-            align"
+           "player aligned with enemy facing right but far away"
            (create_enemy 50 50 10 10 right)
            500 50 true;
          test_enemy_shoot "enemy shoots when delay is satisfied"
