@@ -2,9 +2,8 @@ type t
 (** Abstract type representing the player. *)
 
 val create_player : int -> int -> int -> int -> t
-(** [create_player x y h w] creates a player at position (x, y) in Cartesian
-    coordinates with a specified height and width. Requires: [h] > 0 and [w] >
-    0. *)
+(** [create_player x y w h] creates a player at position ([x], [y]) in Cartesian
+    coordinates with width [w] and height [h]. Requires: [w] > 0 and [h] > 0. *)
 
 val move_player : t -> int -> int -> unit
 (** [move_player player dx dy] moves the [player] by ([dx], [dy]) to a new

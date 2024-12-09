@@ -11,4 +11,4 @@ let move_proj p = { p with x = p.x + p.dx; y = p.y + p.dy }
 let in_bounds p width height =
   p.x >= 0 && p.x < width && p.y >= 0 && p.y < height
 
-let get_position p = (p.x, p.y)
+let get_proj_position p = (p.x, p.y)

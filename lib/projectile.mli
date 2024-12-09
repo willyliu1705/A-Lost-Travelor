@@ -13,5 +13,5 @@ val in_bounds : t -> int -> int -> bool
 (** [in_bounds projectile width height] checks if [projectile] is within bounds
     of the screen defined by [width] and [height]. *)
 
-val get_position : t -> int * int
-(** [get_position projectile] is the (x, y) position of [projectile]. *)
+val get_proj_position : t -> int * int
+(** [get_proj_position projectile] is the (x, y) position of [projectile]. *)

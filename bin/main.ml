@@ -2,6 +2,7 @@ open Graphics
 open Dungeon_crawler.Player
 open Dungeon_crawler.Projectile
 open Dungeon_crawler.Direction
+open Dungeon_crawler.Enemy
 
 type keyword = { mutable word : string }
 
@@ -10,27 +11,26 @@ let player1 = create_player 40 40 50 50
 let player_projectiles = ref []
 let enemy_projectiles = ref []
 let player_direction = ref right (* Change player default direction here *)
-let enemy_direction = ref up (* Change enemy default direction here *)
-let enemy_x = 50
-let enemy_y = 50
-let enemy_width = 50
-let enemy_height = 50
+let enemy = create_enemy 50 50 50 50
 let enemy_last_shot_time = ref 0.0
-let enemy_shoot_delay = 2.0 (* Change enemy shooting delay here *)
+let enemy_shoot_delay = 1.5 (* Change enemy shooting delay here *)
 
 let draw_player player =
   draw_rect (current_x_pos player) (current_y_pos player) (get_height player)
     (get_width player)
 
-let draw_enemy () =
+let draw_enemy enemy =
+  let x, y = get_enemy_position enemy in
+  let w = get_enemy_width enemy in
+  let h = get_enemy_height enemy in
   set_color blue;
-  draw_rect enemy_x enemy_y enemy_width enemy_height;
+  draw_rect x y w h;
   set_color black
 
 let draw_projectiles projectiles =
   List.iter
     (fun p ->
-      let x, y = get_position p in
+      let x, y = get_proj_position p in
       draw_rect x y 5 5)
     projectiles
 
@@ -40,7 +40,7 @@ let move_projectiles projectiles =
   projectiles |> List.map move_proj
   |> List.filter (fun p -> in_bounds p screen_width screen_height)
 
-let shoot player projectiles_ref direction =
+let player_shoot player projectiles_ref direction =
   let dx, dy = to_projectile_delta direction in
   let new_projectile =
     create_proj
@@ -50,33 +50,11 @@ let shoot player projectiles_ref direction =
   in
   projectiles_ref := new_projectile :: !projectiles_ref
 
-let enemy_shoot () =
-  let current_time = Unix.gettimeofday () in
-  if current_time -. !enemy_last_shot_time >= enemy_shoot_delay then (
-    let dx, dy = to_projectile_delta !enemy_direction in
-    let new_projectile =
-      create_proj
-        (enemy_x + (enemy_width / 2))
-        (enemy_y + (enemy_height / 2))
-        dx dy
-    in
-    enemy_projectiles := new_projectile :: !enemy_projectiles;
-    enemy_last_shot_time := current_time)
-
-let player_aligned_with_enemy () =
-  let px, py = (current_x_pos player1, current_y_pos player1) in
-  match !enemy_direction with
-  | dir when dir = up ->
-      px >= enemy_x && px <= enemy_x + enemy_width && py > enemy_y
-  | dir when dir = down ->
-      px >= enemy_x && px <= enemy_x + enemy_width && py < enemy_y
-  | dir when dir = left ->
-      py >= enemy_y && py <= enemy_y + enemy_height && px < enemy_x
-  | dir when dir = right ->
-      py >= enemy_y && py <= enemy_y + enemy_height && px > enemy_x
-  | _ -> false
-
-let update_enemy () = if player_aligned_with_enemy () then enemy_shoot ()
+let update_enemy enemy =
+  if aligned_with_player enemy (current_x_pos player1, current_y_pos player1)
+  then
+    enemy_shoot enemy enemy_projectiles enemy_last_shot_time enemy_shoot_delay
+      (Unix.gettimeofday ())
 
 let update_player player =
   if key_pressed () then
@@ -88,7 +66,8 @@ let update_player player =
             let dx, dy = to_player_delta dir in
             move_player player dx dy
         | None ->
-            if key = ' ' then shoot player player_projectiles !player_direction)
+            if key = ' ' then
+              player_shoot player player_projectiles !player_direction)
 
 let check_press_start player =
   let mouse_position = mouse_pos () in
@@ -125,9 +104,9 @@ let draw_screens keyword =
       set_color red;
       draw_rect 0 0 1907 986;
       draw_player player1;
-      draw_enemy ();
+      draw_enemy enemy;
       update_player player1;
-      update_enemy ();
+      update_enemy enemy;
       draw_projectiles !player_projectiles;
       draw_projectiles !enemy_projectiles;
       player_projectiles := move_projectiles !player_projectiles;
