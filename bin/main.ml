@@ -8,6 +8,7 @@ type keyword = { mutable word : string }
 
 let keyword = { word = "Start Menu" }
 let player1 = create_player 40 40 50 50
+let brown = rgb 150 75 0
 let player_projectiles = ref []
 let enemy_projectiles = ref []
 let player_direction = ref right (* Change player default direction here *)
@@ -85,6 +86,10 @@ let check_press_start player =
     width [w] and height [h].*)
 let draw_rect_centered x y w h = draw_rect (x - (w / 2)) (y - (h / 2)) w h
 
+let draw_heart x y =
+  draw_arc x y 30 40 30 270;
+  draw_arc (x + 40) y 30 40 270 540
+
 let draw_screens keyword =
   match keyword with
   | "Start Menu" ->
@@ -100,10 +105,35 @@ let draw_screens keyword =
       draw_string "PRESS TO START";
       draw_arc 954 800 400 100 0 180;
       draw_arc 954 200 400 100 180 360;
+      synchronize ();
       check_press_start ()
   | "Game Start" ->
+      set_color black;
+      set_line_width 10;
+      draw_segments
+        [|
+          (100, 100, 100, 443);
+          (100, 543, 100, 886);
+          (100, 886, 903, 886);
+          (1004, 886, 1807, 886);
+          (1807, 886, 1807, 543);
+          (1807, 443, 1807, 100);
+          (1807, 100, 1004, 100);
+          (903, 100, 100, 100);
+        |];
+      set_color brown;
+      (* Can add if-statement here to check whether or not the room has been
+         completed, then change the color of the door to yellow*)
+      draw_segments
+        [|
+          (100, 443, 100, 543);
+          (903, 886, 1004, 886);
+          (1807, 543, 1807, 443);
+          (1004, 100, 903, 100);
+        |];
+      set_line_width 2;
       set_color red;
-      draw_rect 0 0 1907 986;
+      draw_heart 500 500;
       draw_player player1;
       draw_enemy enemy;
       update_player player1;
@@ -112,7 +142,9 @@ let draw_screens keyword =
       draw_projectiles !enemy_projectiles;
       player_projectiles := move_projectiles !player_projectiles;
       enemy_projectiles := move_projectiles !enemy_projectiles;
+
       synchronize ()
+  | "Level 1" -> ()
   | _ -> ()
 
 let () =
