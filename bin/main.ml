@@ -1,5 +1,3 @@
-open Graphics
-open Dungeon_crawler.Player
 open Dungeon_crawler.Projectile
 open Dungeon_crawler.Direction
 open Dungeon_crawler.Enemy
