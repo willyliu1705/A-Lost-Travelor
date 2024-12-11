@@ -1,5 +1,6 @@
 open Graphics
 open Dungeon_crawler.Player
+open Dungeon_crawler.Collision
 
 type direction =
   | Up
@@ -7,18 +8,20 @@ type direction =
   | Left
   | Right
 
-type projectile = {
-  x : int;
-  y : int;
-  dx : int;
-  dy : int;
-}
+let projectiles : projectile list ref = ref []
+
+(* Reference to the list of walls *)
+let walls : wall list ref =
+  ref
+    [
+      { x = 100; y = 200; width = 50; height = 100 };
+      { x = 300; y = 400; width = 75; height = 200 };
+    ]
 
 type keyword = { mutable word : string }
 
 let keyword = { word = "Start Menu" }
 let player1 = create_player 40 40 50 50
-let projectiles = ref []
 
 let player_direction =
   ref Right (* Change default direction here if necessary. *)
@@ -31,8 +34,11 @@ let draw_projectiles () =
   List.iter (fun p -> draw_rect p.x p.y 5 5) !projectiles
 
 let move_projectiles () =
+  (* Update projectile positions by adding dx and dy to x and y *)
   projectiles :=
     List.map (fun p -> { p with x = p.x + p.dx; y = p.y + p.dy }) !projectiles;
+
+  (* Filter out projectiles that are out of bounds *)
   projectiles :=
     List.filter
       (fun p -> p.x < size_x () && p.x >= 0 && p.y < size_y () && p.y >= 0)
@@ -112,7 +118,18 @@ let draw_screens keyword =
       update_player player1;
       draw_projectiles ();
       move_projectiles ();
-      synchronize ()
+      (* Check for collisions with projectiles *)
+      let projectile_collision =
+        check_player_projectile_collision player1 !projectiles
+      in
+      if projectile_collision then
+        (* Handle collision with projectiles (e.g., reduce player health,
+           etc.) *)
+        print_endline "Player hit by projectile!";
+
+      (* Check for collisions with walls *)
+      let wall_collision = check_player_wall_collision player1 !walls in
+      if wall_collision then print_endline "Player hit a wall!"
   | _ -> ()
 
 let () =
