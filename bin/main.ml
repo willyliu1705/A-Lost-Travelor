@@ -20,6 +20,20 @@ let draw_player player =
   draw_rect (current_x_pos player) (current_y_pos player) (get_width player)
     (get_height player)
 
+let draw_hp_bar () =
+  set_line_width 5;
+  set_color black;
+  draw_poly_line
+    [| (30, 940); (30, 970); (30, 955); (50, 955); (50, 940); (50, 970) |];
+  draw_poly_line [| (70, 940); (70, 970) |];
+  draw_poly_line [| (70, 970); (85, 970) |];
+  draw_poly_line [| (85, 968); (85, 957) |];
+  draw_poly_line [| (70, 955); (85, 955) |];
+  draw_rect 105 945 200 20;
+  set_color red;
+  fill_rect 105 945 (get_hp player1 * 2) 20;
+  set_line_width 2
+
 let draw_enemy enemy =
   let x = enemy_x_pos enemy in
   let y = enemy_y_pos enemy in
@@ -86,10 +100,6 @@ let check_press_start player =
     width [w] and height [h].*)
 let draw_rect_centered x y w h = draw_rect (x - (w / 2)) (y - (h / 2)) w h
 
-let draw_heart x y =
-  draw_arc x y 30 40 30 270;
-  draw_arc (x + 40) y 30 40 270 540
-
 let draw_screens keyword =
   match keyword with
   | "Start Menu" ->
@@ -133,9 +143,9 @@ let draw_screens keyword =
         |];
       set_line_width 2;
       set_color red;
-      draw_heart 500 500;
       draw_player player1;
       draw_enemy enemy;
+      draw_hp_bar ();
       update_player player1;
       update_enemy enemy;
       draw_projectiles !player_projectiles;
@@ -149,6 +159,7 @@ let draw_screens keyword =
 
 let () =
   open_graph "";
+  set_window_title "Amazing Game";
   while true do
     auto_synchronize false;
     open_graph " 1908x987";
