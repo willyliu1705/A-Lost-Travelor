@@ -2,33 +2,45 @@ type t
 (** Abstract type representing a direction. *)
 
 val up : t
-(** The direction Up. *)
+(** [up] is the upward direction. *)
 
 val down : t
-(** The direction Down. *)
+(** [down] is the downward direction. *)
 
 val left : t
-(** The direction Left. *)
+(** [left] is the leftward direction. *)
 
 val right : t
-(** The direction Right. *)
+(** [right] is the rightward direction. *)
+
+val is_up : t -> bool
+(** [is_up direction] is true if [direction] is up and false otherwise. *)
+
+val is_down : t -> bool
+(** [is_down direction] is true if [direction] is down and false otherwise. *)
+
+val is_left : t -> bool
+(** [is_left direction] is true if [direction] is left and false otherwise. *)
+
+val is_right : t -> bool
+(** [is_right direction] is true if [direction] is right and false otherwise. *)
 
 val player_speed : int
 (** [player_speed] is the speed of the player. *)
 
-val projectile_speed : int
-(** [projectile_speed] is the speed of a projectile. *)
+val player_projectile_speed : int
+(** [player_projectile_speed] is the speed of a projectile. *)
 
 val to_player_delta : t -> int * int
 (** [to_player_delta direction] converts a direction to a tuple representing the
     change in coordinates (dx, dy). *)
 
-val to_projectile_delta : t -> int * int
-(** [to_projectile_delta direction] converts a direction to a tuple representing
-    the change in coordinates (dx, dy) for projectiles. *)
+val to_player_projectile_delta : t -> int * int
+(** [to_player_projectile_delta direction] converts a direction to a tuple
+    representing the change in coordinates (dx, dy) for projectiles. *)
 
 val of_key : char -> t option
-(** [of_key key] maps a key press to a direction. Returns [Some direction] for
+(** [of_key key] maps a key press to a direction and is [Some direction] for
     valid keys and [None] otherwise. *)
 
 val direction_to_string : t -> string

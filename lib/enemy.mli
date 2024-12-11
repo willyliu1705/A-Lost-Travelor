@@ -1,10 +1,11 @@
 type t
 (** Abstract type representing an enemy. *)
 
-val create_enemy : int -> int -> int -> int -> Direction.t -> t
-(** [create_enemy x y w h dir] creates an enemy at position ([x], [y]) in
-    Cartesian coordinates with width [w], height [h], and direction [dir].
-    Requires: [w] > 0 and [h] > 0. *)
+val create_enemy : int -> int -> int -> int -> Direction.t -> int -> t
+(** [create_enemy x y w h dir projectile_speed] creates an enemy at position
+    ([x], [y]) in Cartesian coordinates with width [w], height [h], facing
+    direction [dir], and a [projectile_speed]. Requires: [w] > 0, [h] > 0, and
+    [projectile_speed] > 0. *)
 
 val enemy_x_pos : t -> int
 (** [enemy_x_pos enemy] is the current x-coordinate of [enemy] on the xy-plane. *)
@@ -23,6 +24,9 @@ val set_direction : t -> Direction.t -> unit
 
 val get_direction : t -> Direction.t
 (** [get_direction enemy] is the current direction of [enemy]. *)
+
+val get_projectile_speed : t -> int
+(** [get_projectile_speed enemy] is the projectile speed of [enemy]. *)
 
 val enemy_shoot :
   t -> Projectile.t list ref -> float ref -> float -> float -> unit
