@@ -1,84 +1,72 @@
-open Graphics
-open Dungeon_crawler.Player
-open Dungeon_crawler.Collision
-
-type direction =
-  | Up
-  | Down
-  | Left
-  | Right
-
-let projectiles : projectile list ref = ref []
-
-(* Reference to the list of walls *)
-let walls : wall list ref =
-  ref
-    [
-      { x = 100; y = 200; width = 50; height = 100 };
-      { x = 300; y = 400; width = 75; height = 200 };
-    ]
+open Dungeon_crawler.Projectile
+open Dungeon_crawler.Direction
+open Dungeon_crawler.Enemy
 
 type keyword = { mutable word : string }
 
 let keyword = { word = "Start Menu" }
 let player1 = create_player 40 40 50 50
-
-let player_direction =
-  ref Right (* Change default direction here if necessary. *)
+let player_projectiles = ref []
+let enemy_projectiles = ref []
+let player_direction = ref right (* Change player default direction here *)
+let enemy = create_enemy 50 50 50 50 up
+let enemy_last_shot_time = ref 0.0
+let enemy_shoot_delay = 1.5 (* Change enemy shooting delay here *)
 
 let draw_player player =
-  draw_rect (current_x_pos player) (current_y_pos player) (get_height player)
-    (get_width player)
+  draw_rect (current_x_pos player) (current_y_pos player) (get_width player)
+    (get_height player)
 
-let draw_projectiles () =
-  List.iter (fun p -> draw_rect p.x p.y 5 5) !projectiles
+let draw_enemy enemy =
+  let x = enemy_x_pos enemy in
+  let y = enemy_y_pos enemy in
+  let w = get_enemy_width enemy in
+  let h = get_enemy_height enemy in
+  set_color blue;
+  draw_rect x y w h;
+  set_color black
 
-let move_projectiles () =
-  (* Update projectile positions by adding dx and dy to x and y *)
-  projectiles :=
-    List.map (fun p -> { p with x = p.x + p.dx; y = p.y + p.dy }) !projectiles;
+let draw_projectiles projectiles =
+  List.iter
+    (fun p ->
+      let x, y = get_proj_position p in
+      draw_rect x y 5 5)
+    projectiles
 
-  (* Filter out projectiles that are out of bounds *)
-  projectiles :=
-    List.filter
-      (fun p -> p.x < size_x () && p.x >= 0 && p.y < size_y () && p.y >= 0)
-      !projectiles
+let move_projectiles projectiles =
+  let screen_width = size_x () in
+  let screen_height = size_y () in
+  projectiles |> List.map move_proj
+  |> List.filter (fun p -> in_bounds p screen_width screen_height)
 
-let shoot player =
-  let dx, dy =
-    match !player_direction with
-    | Up -> (0, 5)
-    | Down -> (0, -5)
-    | Left -> (-5, 0)
-    | Right -> (5, 0)
-  in
+let player_shoot player projectiles_ref direction =
+  let dx, dy = to_projectile_delta direction in
   let new_projectile =
-    {
-      x = current_x_pos player + (get_width player / 2);
-      y = current_y_pos player + (get_height player / 2);
-      dx;
-      dy;
-    }
+    create_proj
+      (current_x_pos player + (get_width player / 2))
+      (current_y_pos player + (get_height player / 2))
+      dx dy
   in
-  projectiles := new_projectile :: !projectiles
+  projectiles_ref := new_projectile :: !projectiles_ref
+
+let update_enemy enemy =
+  if aligned_with_player enemy (current_x_pos player1, current_y_pos player1)
+  then
+    enemy_shoot enemy enemy_projectiles enemy_last_shot_time enemy_shoot_delay
+      (Unix.gettimeofday ())
 
 let update_player player =
   if key_pressed () then
     match read_key () with
-    | 'w' ->
-        move_player player 0 2;
-        player_direction := Up
-    | 's' ->
-        move_player player 0 (-2);
-        player_direction := Down
-    | 'a' ->
-        move_player player (-2) 0;
-        player_direction := Left
-    | 'd' ->
-        move_player player 2 0;
-        player_direction := Right
-    | ' ' -> shoot player
-    | _ -> ()
+    | key -> (
+        match of_key key with
+        | Some dir ->
+            player_direction := dir;
+            let dx, dy = to_player_delta dir in
+            move_player player dx dy
+        | None ->
+            if key = ' ' then
+              player_shoot player player_projectiles !player_direction)
 
 let check_press_start player =
   let mouse_position = mouse_pos () in
@@ -115,21 +103,14 @@ let draw_screens keyword =
       set_color red;
       draw_rect 0 0 1907 986;
       draw_player player1;
+      draw_enemy enemy;
       update_player player1;
-      draw_projectiles ();
-      move_projectiles ();
-      (* Check for collisions with projectiles *)
-      let projectile_collision =
-        check_player_projectile_collision player1 !projectiles
-      in
-      if projectile_collision then
-        (* Handle collision with projectiles (e.g., reduce player health,
-           etc.) *)
-        print_endline "Player hit by projectile!";
-
-      (* Check for collisions with walls *)
-      let wall_collision = check_player_wall_collision player1 !walls in
-      if wall_collision then print_endline "Player hit a wall!"
+      update_enemy enemy;
+      draw_projectiles !player_projectiles;
+      draw_projectiles !enemy_projectiles;
+      player_projectiles := move_projectiles !player_projectiles;
+      enemy_projectiles := move_projectiles !enemy_projectiles;
+      synchronize ()
   | _ -> ()
 
 let () =
