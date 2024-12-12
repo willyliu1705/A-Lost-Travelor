@@ -27,3 +27,7 @@ let handle_collision projectiles_ref x y w h =
     List.filter
       (fun proj -> not (collision_helper proj x y w h))
       !projectiles_ref
+
+let clear_all_projectiles () =
+  player_projectiles := [];
+  enemy_projectiles := []

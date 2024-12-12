@@ -95,7 +95,8 @@ let update_player player =
               let () =
                 player_shoot player player_projectiles !player_direction
               in
-              change_hp player (-1))
+              change_hp player (-1)
+            else if key = 'q' then change_hp player 5)
 
 let draw_enemies () =
   draw_enemy enemy1;
