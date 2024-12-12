@@ -68,3 +68,10 @@ let aligned_with_player enemy (px, py) =
   | _ -> false [@coverage off]
 (* should never be able to reach last branch since there are only four
    directions *)
+
+let handle_projectile_collision_with_enemy projectiles_ref enemy =
+  let ex = enemy_x_pos enemy in
+  let ey = enemy_y_pos enemy in
+  let ew = get_enemy_width enemy in
+  let eh = get_enemy_height enemy in
+  Projectile.handle_collision projectiles_ref ex ey ew eh

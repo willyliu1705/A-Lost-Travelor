@@ -38,3 +38,13 @@ val get_corners : t -> t
 (** [get_corners player] is a new player that has the same x,y-position as
     [player], but the height is increased by the value of the x-coprdinate and
     the width is increased by the value of the y-coordinate. *)
+
+val player_shoot : t -> Projectile.t list ref -> Direction.t -> unit
+(** [player_shoot player projectiles_ref direction] adds a new projectile to
+    [projectiles_ref], fired by [player] in the given [direction]. The
+    projectile is created at the center of the player's current position and
+    moves in the direction specified. *)
+
+val handle_enemy_projectiles_with_player : Projectile.t list ref -> t -> unit
+(** [handle_enemy_projectiles_with_player enemy_projectiles player] removes all
+    projectiles in [enemy_projectiles] that collide with the given [player]. *)

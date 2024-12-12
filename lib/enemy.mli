@@ -48,3 +48,7 @@ val aligned_with_player : t -> int * int -> bool
     direction, then the enemy can "see" the player and any enemy actions will
     subsequently begin. Once the player leaves that "line of sight", then enemy
     action ceases. *)
+
+val handle_projectile_collision_with_enemy : Projectile.t list ref -> t -> unit
+(** [handle_projectile_collision_with_enemy projectiles_ref enemy] removes all
+    projectiles in [projectiles_ref] that collide with the given [enemy]. *)
