@@ -15,6 +15,10 @@ let move_player player dx dy =
   player.x_cord <- player.x_cord + dx;
   player.y_cord <- player.y_cord + dy
 
+let move_player_absolute player x y =
+  player.x_cord <- x;
+  player.y_cord <- y
+
 let current_x_pos player = player.x_cord
 let current_y_pos player = player.y_cord
 let get_width player = player.width

@@ -10,6 +10,9 @@ val move_player : t -> int -> int -> unit
 (** [move_player player dx dy] moves the [player] by ([dx], [dy]) to a new
     coordinate (x + [dx], y + [dy]). *)
 
+val move_player_absolute : t -> int -> int -> unit
+(** [move_player_absolute] moves [player] to the coordinates [x], [y]. *)
+
 val current_x_pos : t -> int
 (** [current_x_pos player] is the current x-position of [player] as a coordinate
     on the xy-plane. *)
