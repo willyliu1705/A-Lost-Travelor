@@ -25,3 +25,13 @@ let get_corners obj =
     height = current_x_pos obj + get_height obj;
     width = current_y_pos obj + get_width obj;
   }
+
+let player_shoot player projectiles_ref direction =
+  let dx, dy = Direction.to_player_projectile_delta direction in
+  let new_projectile =
+    Projectile.create_proj
+      (current_x_pos player + (get_width player / 2))
+      (current_y_pos player + (get_height player / 2))
+      dx dy
+  in
+  projectiles_ref := new_projectile :: !projectiles_ref
