@@ -215,6 +215,36 @@ let test_enemy_shoot name enemy projectiles_ref last_shot_time delay
     (List.length !projectiles_ref)
     ~printer:string_of_int
 
+(** [test_create_enemy_with_speed name x y w h dir speed expected_speed] is a
+    test case with [name] that checks if creating an enemy with the given
+    parameters results in an enemy with the expected projectile speed. *)
+let test_create_enemy_with_speed name x y w h dir speed expected_speed =
+  name >:: fun _ ->
+  let enemy = create_enemy x y w h dir speed in
+  assert_equal expected_speed
+    (get_projectile_speed enemy)
+    ~printer:string_of_int
+
+(** [test_is_up name dir expected] is a test case with [name] that checks if
+    [is_up dir] returns [expected]. *)
+let test_is_up name dir expected =
+  name >:: fun _ -> assert_equal expected (is_up dir) ~printer:string_of_bool
+
+(** [test_is_down name dir expected] is a test case with [name] that checks if
+    [is_down dir] returns [expected]. *)
+let test_is_down name dir expected =
+  name >:: fun _ -> assert_equal expected (is_down dir) ~printer:string_of_bool
+
+(** [test_is_left name dir expected] is a test case with [name] that checks if
+    [is_left dir] returns [expected]. *)
+let test_is_left name dir expected =
+  name >:: fun _ -> assert_equal expected (is_left dir) ~printer:string_of_bool
+
+(** [test_is_right name dir expected] is a test case with [name] that checks if
+    [is_right dir] returns [expected]. *)
+let test_is_right name dir expected =
+  name >:: fun _ -> assert_equal expected (is_right dir) ~printer:string_of_bool
+
 let projectiles = ref []
 let last_shot_time = ref 0.0
 let current_time = 5.0
@@ -584,11 +614,38 @@ let tests =
            (create_enemy 50 50 10 10 up 1)
            projectiles last_shot_time delay current_time 1;
          test_enemy_shoot "enemy does not shoot if delay is not satisfied"
-           (create_enemy 50 50 10 10 up 1)
+           (create_enemy 50 50 10 10 down 1)
            projectiles last_shot_time delay 5.5 1;
+         test_enemy_shoot "Enemy shoots after a very large delay"
+           (create_enemy 50 50 10 10 left 10)
+           (ref []) (ref 0.0) 100.0 101.0 1;
          test_enemy_shoot "enemy shoots twice after enough delay"
-           (create_enemy 50 50 10 10 up 1)
+           (create_enemy 50 50 10 10 right 1)
            projectiles last_shot_time delay 8.0 2;
+         test_create_enemy_with_speed "Enemy with projectile speed 1" 10 10 20
+           20 up 1 1;
+         test_create_enemy_with_speed "Enemy with projectile speed 5" 30 30 40
+           40 down 5 5;
+         test_create_enemy_with_speed "Enemy with projectile speed 100" 50 50 60
+           60 left 100 100;
+         test_create_enemy_with_speed "Enemy with invalid projectile speed 0" 70
+           70 80 80 right 0 0;
+         test_is_up "is_up returns true for up" up true;
+         test_is_up "is_up returns false for down" down false;
+         test_is_up "is_up returns false for left" left false;
+         test_is_up "is_up returns false for right" right false;
+         test_is_down "is_down returns true for down" down true;
+         test_is_down "is_down returns false for up" up false;
+         test_is_down "is_down returns false for left" left false;
+         test_is_down "is_down returns false for right" right false;
+         test_is_left "is_left returns true for left" left true;
+         test_is_left "is_left returns false for up" up false;
+         test_is_left "is_left returns false for down" down false;
+         test_is_left "is_left returns false for right" right false;
+         test_is_right "is_right returns true for right" right true;
+         test_is_right "is_right returns false for up" up false;
+         test_is_right "is_right returns false for down" down false;
+         test_is_right "is_right returns false for left" left false;
        ]
 
 let _ = run_test_tt_main tests
