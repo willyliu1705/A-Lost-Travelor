@@ -26,10 +26,14 @@ val is_right : t -> bool
 (** [is_right direction] is true if [direction] is right and false otherwise. *)
 
 val player_speed : int
-(** [player_speed] is the speed of the player. *)
+(** [player_speed] is the default speed of the player. *)
 
 val player_projectile_speed : int
-(** [player_projectile_speed] is the speed of a projectile. *)
+(** [player_projectile_speed] is the default speed of a projectile fired by the
+    player. *)
+
+val player_direction : t ref
+(** [player_direction] is the default direction of the player. *)
 
 val to_player_delta : t -> int * int
 (** [to_player_delta direction] converts a direction to a tuple representing the
