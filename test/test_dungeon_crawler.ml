@@ -201,26 +201,12 @@ let test_aligned_with_player name enemy px py expected =
     (aligned_with_player enemy (px, py))
     ~printer:string_of_bool
 
-(** [test_enemy_shoot name enemy projectiles_ref last_shot_time delay current_time expected_len]
-    is a test case with [name] that checks if the enemy shoots a projectile when
-    the [current_time] - [last_shot_time] is greater than or equal to [delay] by
-    observing the length of the projectile list. *)
-let test_enemy_shoot name enemy projectiles_ref last_shot_time delay
-    current_time expected_len =
-  name >:: fun _ ->
-  let () =
-    enemy_shoot enemy projectiles_ref last_shot_time delay current_time
-  in
-  assert_equal expected_len
-    (List.length !projectiles_ref)
-    ~printer:string_of_int
-
 (** [test_create_enemy_with_speed name x y w h dir speed expected_speed] is a
     test case with [name] that checks if creating an enemy with the given
     parameters results in an enemy with the expected projectile speed. *)
-let test_create_enemy_with_speed name x y w h dir speed expected_speed =
+let test_create_enemy_with_speed name x y w h dir speed delay expected_speed =
   name >:: fun _ ->
-  let enemy = create_enemy x y w h dir speed in
+  let enemy = create_enemy x y w h dir speed delay in
   assert_equal expected_speed
     (get_projectile_speed enemy)
     ~printer:string_of_int
@@ -245,10 +231,29 @@ let test_is_left name dir expected =
 let test_is_right name dir expected =
   name >:: fun _ -> assert_equal expected (is_right dir) ~printer:string_of_bool
 
-let projectiles = ref []
-let last_shot_time = ref 0.0
-let current_time = 5.0
-let delay = 2.0
+(** [test_create_enemy_with_delay name x y w h dir speed delay expected_delay]
+    is a test case with [name] that checks if creating an enemy with the given
+    parameters results in an enemy with the expected shooting delay. *)
+let test_create_enemy_with_delay name x y w h dir speed delay expected_delay =
+  name >:: fun _ ->
+  let enemy = create_enemy x y w h dir speed delay in
+  assert_equal expected_delay (get_shooting_delay enemy)
+    ~printer:string_of_float
+
+(** [test_enemy_shoot_with_delay name enemy projectiles_ref last_shot_time_ref
+    current_time expected_projectile_count]
+    is a test case with [name] that checks if the enemy correctly uses its
+    shooting delay when firing projectiles. *)
+let test_enemy_shoot_with_delay name enemy projectiles_ref last_shot_time_ref
+    current_time expected_projectile_count =
+  name >:: fun _ ->
+  let () =
+    enemy_shoot enemy projectiles_ref last_shot_time_ref
+      (get_shooting_delay enemy) current_time
+  in
+  assert_equal expected_projectile_count
+    (List.length !projectiles_ref)
+    ~printer:string_of_int
 
 let tests =
   "test suite"
@@ -497,139 +502,129 @@ let tests =
          test_of_key "of_key for lowercase 'z'" 'z' None;
          test_of_key "of_key for unsupported special character '*'" '*' None;
          test_enemy_x_pos "enemy at origin has x=0"
-           (create_enemy 0 0 10 10 up 1)
+           (create_enemy 0 0 10 10 up 1 1.0)
            0;
          test_enemy_x_pos "enemy at positive x=50"
-           (create_enemy 50 0 10 10 up 1)
+           (create_enemy 50 0 10 10 up 1 1.0)
            50;
          test_enemy_x_pos "enemy at negative x=-30"
-           (create_enemy (-30) 0 10 10 up 1)
+           (create_enemy (-30) 0 10 10 up 1 1.0)
            (-30);
          test_enemy_x_pos "enemy at large positive x=10000"
-           (create_enemy 10000 0 10 10 up 1)
+           (create_enemy 10000 0 10 10 up 1 1.0)
            10000;
          test_enemy_x_pos "enemy at large negative x=-10000"
-           (create_enemy (-10000) 0 10 10 up 1)
+           (create_enemy (-10000) 0 10 10 up 1 1.0)
            (-10000);
          test_enemy_y_pos "enemy at origin has y=0"
-           (create_enemy 0 0 10 10 up 1)
+           (create_enemy 0 0 10 10 up 1 1.0)
            0;
          test_enemy_y_pos "enemy at positive y=50"
-           (create_enemy 0 50 10 10 up 1)
+           (create_enemy 0 50 10 10 up 1 1.0)
            50;
          test_enemy_y_pos "enemy at negative y=-30"
-           (create_enemy 0 (-30) 10 10 up 1)
+           (create_enemy 0 (-30) 10 10 up 1 1.0)
            (-30);
          test_enemy_y_pos "enemy at large positive y=10000"
-           (create_enemy 0 10000 10 10 up 1)
+           (create_enemy 0 10000 10 10 up 1 1.0)
            10000;
          test_enemy_y_pos "enemy at large negative y=-10000"
-           (create_enemy 0 (-10000) 10 10 up 1)
+           (create_enemy 0 (-10000) 10 10 up 1 1.0)
            (-10000);
          test_get_enemy_height "enemy with height 10"
-           (create_enemy 0 0 10 10 up 1)
+           (create_enemy 0 0 10 10 up 1 1.0)
            10;
          test_get_enemy_height "enemy with height 50"
-           (create_enemy 0 0 10 50 up 1)
+           (create_enemy 0 0 10 50 up 1 1.0)
            50;
          test_get_enemy_height "enemy with height 0 (invalid)"
-           (create_enemy 0 0 10 0 up 1)
+           (create_enemy 0 0 10 0 up 1 1.0)
            0;
          test_get_enemy_width "enemy with width 10"
-           (create_enemy 0 0 10 10 up 1)
+           (create_enemy 0 0 10 10 up 1 1.0)
            10;
          test_get_enemy_width "enemy with width 50"
-           (create_enemy 0 0 50 10 up 1)
+           (create_enemy 0 0 50 10 up 1 1.0)
            50;
          test_get_enemy_width "enemy with width 0 (invalid)"
-           (create_enemy 0 0 0 10 up 1)
+           (create_enemy 0 0 0 10 up 1 1.0)
            0;
-         test_get_direction "enemy facing up" (create_enemy 0 0 10 10 up 1) up;
+         test_get_direction "enemy facing up"
+           (create_enemy 0 0 10 10 up 1 1.0)
+           up;
          test_get_direction "enemy facing down"
-           (create_enemy 0 0 10 10 down 1)
+           (create_enemy 0 0 10 10 down 1 1.0)
            down;
          test_get_direction "enemy facing left"
-           (create_enemy 0 0 10 10 left 1)
+           (create_enemy 0 0 10 10 left 1 1.0)
            left;
          test_get_direction "enemy facing right"
-           (create_enemy 0 0 10 10 right 1)
+           (create_enemy 0 0 10 10 right 1 1.0)
            right;
          test_set_direction "set enemy direction to up"
-           (create_enemy 0 0 10 10 up 1)
+           (create_enemy 0 0 10 10 up 1 1.0)
            up;
          test_set_direction "set enemy direction to down"
-           (create_enemy 0 0 10 10 up 1)
+           (create_enemy 0 0 10 10 up 1 1.0)
            down;
          test_set_direction "set enemy direction to left"
-           (create_enemy 0 0 10 10 up 1)
+           (create_enemy 0 0 10 10 up 1 1.0)
            left;
          test_set_direction "set enemy direction to right"
-           (create_enemy 0 0 10 10 up 1)
+           (create_enemy 0 0 10 10 up 1 1.0)
            right;
          test_aligned_with_player "player directly above enemy is aligned"
-           (create_enemy 50 50 10 10 up 1)
+           (create_enemy 50 50 10 10 up 1 1.0)
            55 70 true;
          test_aligned_with_player
            "player not in line above enemy is not aligned"
-           (create_enemy 50 50 10 10 up 1)
+           (create_enemy 50 50 10 10 up 1 1.0)
            45 70 false;
          test_aligned_with_player
            "player aligned with enemy facing up but far away"
-           (create_enemy 50 50 10 10 up 1)
+           (create_enemy 50 50 10 10 up 1 1.0)
            55 500 true;
          test_aligned_with_player "player directly below enemy is aligned"
-           (create_enemy 50 50 10 10 down 1)
+           (create_enemy 50 50 10 10 down 1 1.0)
            55 30 true;
          test_aligned_with_player
            "player not in line below enemy is not aligned"
-           (create_enemy 50 50 10 10 down 1)
+           (create_enemy 50 50 10 10 down 1 1.0)
            65 30 false;
          test_aligned_with_player
            "player aligned with enemy facing down but far away"
-           (create_enemy 50 50 10 10 down 1)
+           (create_enemy 50 50 10 10 down 1 1.0)
            55 (-500) true;
          test_aligned_with_player "player directly left of enemy is aligned"
-           (create_enemy 50 50 10 10 left 1)
+           (create_enemy 50 50 10 10 left 1 1.0)
            40 55 true;
          test_aligned_with_player
            "player not in line left of enemy is not aligned"
-           (create_enemy 50 50 10 10 left 1)
+           (create_enemy 50 50 10 10 left 1 1.0)
            40 65 false;
          test_aligned_with_player
            "player aligned with enemy facing left but far away"
-           (create_enemy 50 50 10 10 left 1)
+           (create_enemy 50 50 10 10 left 1 1.0)
            (-500) 50 true;
          test_aligned_with_player "player directly right of enemy is aligned"
-           (create_enemy 50 50 10 10 right 1)
+           (create_enemy 50 50 10 10 right 1 1.0)
            70 55 true;
          test_aligned_with_player
            "player not in line right of enemy is not aligned"
-           (create_enemy 50 50 10 10 right 1)
+           (create_enemy 50 50 10 10 right 1 1.0)
            70 65 false;
          test_aligned_with_player
            "player aligned with enemy facing right but far away"
-           (create_enemy 50 50 10 10 right 1)
+           (create_enemy 50 50 10 10 right 1 1.0)
            500 50 true;
-         test_enemy_shoot "enemy shoots when delay is satisfied"
-           (create_enemy 50 50 10 10 up 1)
-           projectiles last_shot_time delay current_time 1;
-         test_enemy_shoot "enemy does not shoot if delay is not satisfied"
-           (create_enemy 50 50 10 10 down 1)
-           projectiles last_shot_time delay 5.5 1;
-         test_enemy_shoot "Enemy shoots after a very large delay"
-           (create_enemy 50 50 10 10 left 10)
-           (ref []) (ref 0.0) 100.0 101.0 1;
-         test_enemy_shoot "enemy shoots twice after enough delay"
-           (create_enemy 50 50 10 10 right 1)
-           projectiles last_shot_time delay 8.0 2;
          test_create_enemy_with_speed "Enemy with projectile speed 1" 10 10 20
-           20 up 1 1;
+           20 up 1 1.0 1;
          test_create_enemy_with_speed "Enemy with projectile speed 5" 30 30 40
-           40 down 5 5;
+           40 down 5 1.0 5;
          test_create_enemy_with_speed "Enemy with projectile speed 100" 50 50 60
-           60 left 100 100;
+           60 left 100 1.0 100;
          test_create_enemy_with_speed "Enemy with invalid projectile speed 0" 70
-           70 80 80 right 0 0;
+           70 80 80 right 0 1.0 0;
          test_is_up "is_up returns true for up" up true;
          test_is_up "is_up returns false for down" down false;
          test_is_up "is_up returns false for left" left false;
@@ -646,6 +641,32 @@ let tests =
          test_is_right "is_right returns false for up" up false;
          test_is_right "is_right returns false for down" down false;
          test_is_right "is_right returns false for left" left false;
+         test_create_enemy_with_delay "Enemy with delay 1.0" 0 0 10 10 up 1 1.0
+           1.0;
+         test_create_enemy_with_delay "Enemy with delay 2.0" 0 0 10 10 down 1
+           2.5 2.5;
+         test_create_enemy_with_delay "Enemy with large delay" 0 0 10 10 left 1
+           100.0 100.0;
+         test_enemy_shoot_with_delay "Enemy shoots after delay is satisfied"
+           (create_enemy 50 50 10 10 up 1 1.5)
+           (ref []) (ref 0.0) 1.5 1;
+         test_enemy_shoot_with_delay "Enemy does not shoot before delay"
+           (create_enemy 50 50 10 10 down 1 2.0)
+           (ref []) (ref 0.0) 1.5 0;
+         test_enemy_shoot_with_delay "Enemy with zero delay shoots instantly"
+           (create_enemy 50 50 10 10 left 1 0.0)
+           (ref []) (ref 0.0) 0.0 1;
+         test_enemy_shoot_with_delay
+           "Enemy does not shoot if delay is very high"
+           (create_enemy 50 50 10 10 right 1 100.0)
+           (ref []) (ref 0.0) 10.0 0;
+         test_enemy_shoot_with_delay "Enemy shoots after very large delay"
+           (create_enemy 50 50 10 10 down 1 500.0)
+           (ref []) (ref 0.0) 500.0 1;
+         test_enemy_shoot_with_delay
+           "Enemy shoots after delay that does not end in 0 or 5"
+           (create_enemy 50 50 10 10 right 1 1.2)
+           (ref []) (ref 0.0) 1.4 1;
        ]
 
 let _ = run_test_tt_main tests
