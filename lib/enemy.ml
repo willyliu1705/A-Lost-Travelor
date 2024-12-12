@@ -5,10 +5,19 @@ type t = {
   height : int;
   mutable direction : Direction.t;
   projectile_speed : int;
+  shooting_delay : float;
 }
 
-let create_enemy x y w h dir projectile_speed =
-  { x; y; width = w; height = h; direction = dir; projectile_speed }
+let create_enemy x y w h dir projectile_speed shooting_delay =
+  {
+    x;
+    y;
+    width = w;
+    height = h;
+    direction = dir;
+    projectile_speed;
+    shooting_delay;
+  }
 
 let enemy_x_pos enemy = enemy.x
 let enemy_y_pos enemy = enemy.y
@@ -17,6 +26,7 @@ let get_enemy_height enemy = enemy.height
 let set_direction enemy dir = enemy.direction <- dir
 let get_direction enemy = enemy.direction
 let get_projectile_speed enemy = enemy.projectile_speed
+let get_shooting_delay enemy = enemy.shooting_delay
 
 let enemy_shoot enemy projectiles_ref last_shot_time delay current_time =
   if current_time -. !last_shot_time >= delay then (
