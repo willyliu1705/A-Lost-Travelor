@@ -78,6 +78,21 @@ let update_player player =
             if key = ' ' then
               player_shoot player player_projectiles !player_direction)
 
+let handle_projectile_collision_with_enemy projectiles_ref enemy =
+  let ex = enemy_x_pos enemy in
+  let ey = enemy_y_pos enemy in
+  let ew = get_enemy_width enemy in
+  let eh = get_enemy_height enemy in
+  handle_collision projectiles_ref ex ey ew eh
+
+let handle_enemy_projectiles_with_player enemy_projectiles player =
+  let px = current_x_pos player in
+  let py = current_y_pos player in
+  let pw = get_width player in
+  let ph = get_height player in
+  if detect_collision enemy_projectiles px py pw ph then
+    handle_collision enemy_projectiles px py pw ph
+
 let draw_enemies () =
   draw_enemy enemy1;
   draw_enemy enemy2;
@@ -130,6 +145,10 @@ let draw_screens keyword =
       draw_projectiles !enemy_projectiles;
       player_projectiles := move_projectiles !player_projectiles;
       enemy_projectiles := move_projectiles !enemy_projectiles;
+      handle_projectile_collision_with_enemy player_projectiles enemy1;
+      handle_projectile_collision_with_enemy player_projectiles enemy2;
+      handle_projectile_collision_with_enemy player_projectiles enemy3;
+      handle_enemy_projectiles_with_player enemy_projectiles player1;
       synchronize ()
   | _ -> ()
 
