@@ -24,7 +24,11 @@ let current_y_pos player = player.y_cord
 let get_width player = player.width
 let get_height player = player.height
 let get_hp player = player.hp
-let change_hp player d_hp = player.hp <- player.hp + d_hp
+
+let change_hp player amount =
+  if player.hp <= 100 then
+    let new_hp = min 100 (player.hp + amount) in
+    player.hp <- new_hp
 
 let get_corners obj =
   {

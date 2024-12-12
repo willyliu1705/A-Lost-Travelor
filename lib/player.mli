@@ -31,8 +31,8 @@ val get_hp : t -> int
 (** [get_hp player] is the current hp of [player]. *)
 
 val change_hp : t -> int -> unit
-(** [change_hp] adjusts the hp value of [player] according to the provided
-    [d_hp]. *)
+(** [change_hp player amount] adjusts the hp value of [player] according to the
+    provided [amount]. *)
 
 val get_corners : t -> t
 (** [get_corners player] is a new player that has the same x,y-position as

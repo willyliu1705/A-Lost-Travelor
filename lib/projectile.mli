@@ -31,3 +31,7 @@ val handle_collision : t list ref -> int -> int -> int -> int -> unit
 (** [handle_collision projectiles_ref x y w h] removes all projectiles in
     [projectiles_ref] that collide with the rectangular object at ([x], [y])
     with dimensions [w] and [h]. *)
+
+val clear_all_projectiles : unit -> unit
+(** [clear_all_projectiles ()] clears all projectiles from the player and enemy
+    projectile lists. *)
