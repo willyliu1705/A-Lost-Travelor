@@ -15,14 +15,25 @@ let paused = { paused = false }
 type room_completed = { mutable completed : bool }
 
 let room_completed = { completed = false }
-let player1 = create_player 80 493 50 50
 let brown = rgb 150 75 0
+
+let player1 = create_player 40 40 10 10
+(* player has to be sufficiently small or else weird interactions will occur
+   with the enemy entities (e.g. enemy sees the player "faster" when entering
+   the enemy's line of sight from the right compared to the left; as a result,
+   this causes the enemy to not shoot at the player when its supposed to. ) *)
+   
 let player_projectiles = ref []
 let enemy_projectiles = ref []
+
 let player_direction = ref right (* Change player default direction here *)
-let enemy = create_enemy 50 50 50 50 up
-let enemy_last_shot_time = ref 0.0
-let enemy_shoot_delay = 1.5 (* Change enemy shooting delay here *)
+
+(* Enemies should be the same size or larger than the player to prevent
+   unintended interactions and misalignment issues for enemy line of sight
+   between the enemy and the player (an example is described above). *)
+let enemy1 = create_enemy 50 50 50 50 up 1 1.0
+let enemy2 = create_enemy 10 10 10 10 right 1 2.0
+let enemy3 = create_enemy 10 30 10 10 right 1 0.5
 
 (** [draw_rect_centered] draws the rectangle centered at point [x], [y] with
     width [w] and height [h].*)
@@ -59,7 +70,7 @@ let draw_projectiles projectiles =
   List.iter
     (fun p ->
       let x, y = get_proj_position p in
-      draw_rect x y 5 5)
+      draw_circle x y 3)
     projectiles
 
 let move_projectiles projectiles =
@@ -69,7 +80,7 @@ let move_projectiles projectiles =
   |> List.filter (fun p -> in_bounds p screen_width screen_height)
 
 let player_shoot player projectiles_ref direction =
-  let dx, dy = to_projectile_delta direction in
+  let dx, dy = to_player_projectile_delta direction in
   let new_projectile =
     create_proj
       (current_x_pos player + (get_width player / 2))
@@ -81,7 +92,8 @@ let player_shoot player projectiles_ref direction =
 let update_enemy enemy =
   if aligned_with_player enemy (current_x_pos player1, current_y_pos player1)
   then
-    enemy_shoot enemy enemy_projectiles enemy_last_shot_time enemy_shoot_delay
+    let delay = get_shooting_delay enemy in
+    enemy_shoot enemy enemy_projectiles enemy_last_shot_time delay
       (Unix.gettimeofday ())
 
 let update_player player =
@@ -99,6 +111,16 @@ let update_player player =
                 player_shoot player player_projectiles !player_direction
               in
               change_hp player (-1))
+
+let draw_enemies () =
+  draw_enemy enemy1;
+  draw_enemy enemy2;
+  draw_enemy enemy3
+
+let update_enemies () =
+  update_enemy enemy1;
+  update_enemy enemy2;
+  update_enemy enemy3
 
 let check_press_start player =
   let mouse_position = mouse_pos () in
