@@ -9,7 +9,8 @@ let player1 = create_player 40 40 50 50
 let player_projectiles = ref []
 let enemy_projectiles = ref []
 let player_direction = ref right (* Change player default direction here *)
-let enemy = create_enemy 50 50 50 50 up
+let enemy1 = create_enemy 50 50 50 50 up 1
+let enemy2 = create_enemy 10 10 10 10 right 10
 let enemy_last_shot_time = ref 0.0
 let enemy_shoot_delay = 1.5 (* Change enemy shooting delay here *)
 
@@ -40,7 +41,7 @@ let move_projectiles projectiles =
   |> List.filter (fun p -> in_bounds p screen_width screen_height)
 
 let player_shoot player projectiles_ref direction =
-  let dx, dy = to_projectile_delta direction in
+  let dx, dy = to_player_projectile_delta direction in
   let new_projectile =
     create_proj
       (current_x_pos player + (get_width player / 2))
@@ -67,6 +68,14 @@ let update_player player =
         | None ->
             if key = ' ' then
               player_shoot player player_projectiles !player_direction)
+
+let update_enemies () =
+  update_enemy enemy1;
+  update_enemy enemy2
+
+let draw_enemies () =
+  draw_enemy enemy1;
+  draw_enemy enemy2
 
 let check_press_start player =
   let mouse_position = mouse_pos () in
@@ -103,9 +112,9 @@ let draw_screens keyword =
       set_color red;
       draw_rect 0 0 1907 986;
       draw_player player1;
-      draw_enemy enemy;
+      draw_enemies ();
       update_player player1;
-      update_enemy enemy;
+      update_enemies ();
       draw_projectiles !player_projectiles;
       draw_projectiles !enemy_projectiles;
       player_projectiles := move_projectiles !player_projectiles;
