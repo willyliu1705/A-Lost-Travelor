@@ -3,9 +3,6 @@ open Dungeon_crawler.Player
 open Dungeon_crawler.Projectile
 open Dungeon_crawler.Direction
 open Dungeon_crawler.Enemy
-open Dungeon_crawler.Player
-open Dungeon_crawler.Collision
-open Graphics
 
 type keyword = { mutable word : string }
 
@@ -20,16 +17,11 @@ type room_completed = { mutable completed : bool }
 let room_completed = { completed = false }
 let brown = rgb 150 75 0
 
-let player1 = create_player 40 40 10 10
 (* player has to be sufficiently small or else weird interactions will occur
    with the enemy entities (e.g. enemy sees the player "faster" when entering
    the enemy's line of sight from the right compared to the left; as a result,
    this causes the enemy to not shoot at the player when its supposed to. ) *)
-   
-let player_projectiles = ref []
-let enemy_projectiles = ref []
-
-let player_direction = ref right (* Change player default direction here *)
+let player1 = create_player 40 40 10 10
 
 (* Enemies should be the same size or larger than the player to prevent
    unintended interactions and misalignment issues for enemy line of sight
@@ -104,21 +96,6 @@ let update_player player =
                 player_shoot player player_projectiles !player_direction
               in
               change_hp player (-1))
-
-let handle_projectile_collision_with_enemy projectiles_ref enemy =
-  let ex = enemy_x_pos enemy in
-  let ey = enemy_y_pos enemy in
-  let ew = get_enemy_width enemy in
-  let eh = get_enemy_height enemy in
-  handle_collision projectiles_ref ex ey ew eh
-
-let handle_enemy_projectiles_with_player enemy_projectiles player =
-  let px = current_x_pos player in
-  let py = current_y_pos player in
-  let pw = get_width player in
-  let ph = get_height player in
-  if detect_collision enemy_projectiles px py pw ph then
-    handle_collision enemy_projectiles px py pw ph
 
 let draw_enemies () =
   draw_enemy enemy1;
