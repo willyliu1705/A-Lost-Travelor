@@ -10,6 +10,14 @@ let string_of_option = function
   | Some _ -> "Some direction"
   | None -> "None"
 
+let string_of_projectiles projectiles =
+  String.concat "; "
+    (List.map
+       (fun proj ->
+         let x, y = get_proj_position proj in
+         Printf.sprintf "(%d, %d)" x y)
+       projectiles)
+
 (** [test_current_x name input expected_output] is a test case with [name] that
     checks if the current x of the player [input] is equal to [expected_x]. *)
 let test_current_x name input expected_x =
@@ -273,6 +281,16 @@ let test_detect_collision name projectiles_ref x y w h expected =
   assert_equal expected
     (detect_collision projectiles_ref x y w h)
     ~printer:string_of_bool
+
+(** [test_player_shoot name player projectiles_ref dir expected_projectiles] is
+    a test case with [name] that checks if calling [player_shoot] on [player] in
+    the given direction [dir] correctly adds a projectile to [projectiles_ref]
+    with the expected position and velocity. *)
+let test_player_shoot name player projectiles_ref dir expected_projectiles =
+  name >:: fun _ ->
+  player_shoot player projectiles_ref dir;
+  assert_equal expected_projectiles !projectiles_ref
+    ~printer:string_of_projectiles
 
 let tests =
   "test suite"
@@ -732,6 +750,54 @@ let tests =
          test_detect_collision "Projectile just inside rectangle (collision)"
            (ref [ create_proj 9 9 0 0 ])
            0 0 10 10 true;
+         test_player_shoot "Player shoots upwards"
+           (create_player 50 50 10 10)
+           (ref []) up
+           [
+             create_proj 55
+               (50 + player_projectile_speed)
+               0 player_projectile_speed;
+           ];
+         test_player_shoot "Player shoots downwards"
+           (create_player 50 50 10 10)
+           (ref []) down
+           [
+             create_proj 55
+               (50 + player_projectile_speed)
+               0 (-player_projectile_speed);
+           ];
+         test_player_shoot "Player shoots leftwards"
+           (create_player 50 50 10 10)
+           (ref []) left
+           [
+             create_proj
+               (50 + player_projectile_speed)
+               55 (-player_projectile_speed) 0;
+           ];
+         test_player_shoot "Player shoots rightwards"
+           (create_player 50 50 10 10)
+           (ref []) right
+           [
+             create_proj
+               (50 + player_projectile_speed)
+               55 player_projectile_speed 0;
+           ];
+         test_player_shoot "Player with large dimensions shoots"
+           (create_player 1000 2000 10 10)
+           (ref []) up
+           [
+             create_proj 1005
+               (2000 + player_projectile_speed)
+               0 player_projectile_speed;
+           ];
+         test_player_shoot "Player at negative position shoots"
+           (create_player (-50) (-50) 10 10)
+           (ref []) left
+           [
+             create_proj
+               (-50 + player_projectile_speed)
+               (-45) (-player_projectile_speed) 0;
+           ];
        ]
 
 let _ = run_test_tt_main tests
