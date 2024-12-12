@@ -30,7 +30,8 @@ let enemy_shoot enemy projectiles_ref last_shot_time delay current_time =
       else if Direction.is_right (get_direction enemy) then
         (get_projectile_speed enemy, 0)
       else ((0, 0) [@coverage off])
-      (* should never be able to reach last statement *)
+      (* should never be able to reach last statement since there are only four
+         directions *)
     in
     let x = enemy_x_pos enemy in
     let y = enemy_y_pos enemy in
@@ -53,4 +54,5 @@ let aligned_with_player enemy (px, py) =
   | dir when dir = Direction.left -> py >= ey && py <= ey + eh && px < ex
   | dir when dir = Direction.right -> py >= ey && py <= ey + eh && px > ex
   | _ -> false [@coverage off]
-(* should never be able to reach last branch *)
+(* should never be able to reach last branch since there are only four
+   directions *)
