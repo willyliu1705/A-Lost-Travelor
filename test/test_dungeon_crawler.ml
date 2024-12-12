@@ -292,6 +292,28 @@ let test_player_shoot name player projectiles_ref dir expected_projectiles =
   assert_equal expected_projectiles !projectiles_ref
     ~printer:string_of_projectiles
 
+(** [test_handle_projectile_collision_with_enemy name projectiles_ref enemy expected_projectiles]
+    is a test case with [name] that checks if calling
+    [handle_projectile_collision_with_enemy] removes the correct projectiles
+    that collide with the given [enemy]. *)
+let test_handle_projectile_collision_with_enemy name projectiles_ref enemy
+    expected_projectiles =
+  name >:: fun _ ->
+  handle_projectile_collision_with_enemy projectiles_ref enemy;
+  assert_equal expected_projectiles !projectiles_ref
+    ~printer:string_of_projectiles
+
+(** [test_handle_enemy_projectiles_with_player name enemy_projectiles player expected_projectiles]
+    is a test case with [name] that checks if calling
+    [handle_enemy_projectiles_with_player] removes the correct projectiles that
+    collide with the given [player]. *)
+let test_handle_enemy_projectiles_with_player name enemy_projectiles player
+    expected_projectiles =
+  name >:: fun _ ->
+  handle_enemy_projectiles_with_player enemy_projectiles player;
+  assert_equal expected_projectiles !enemy_projectiles
+    ~printer:string_of_projectiles
+
 let tests =
   "test suite"
   >::: [
@@ -798,6 +820,112 @@ let tests =
                (-50 + player_projectile_speed)
                (-45) (-player_projectile_speed) 0;
            ];
+         test_handle_projectile_collision_with_enemy
+           "No projectiles, no collision" (ref [])
+           (create_enemy 50 50 10 10 up 1 1.0)
+           [];
+         test_handle_projectile_collision_with_enemy
+           "One projectile, no collision"
+           (ref [ create_proj 100 100 0 0 ])
+           (create_enemy 50 50 10 10 up 1 1.0)
+           [ create_proj 100 100 0 0 ];
+         test_handle_projectile_collision_with_enemy "One projectile, collision"
+           (ref [ create_proj 55 55 0 0 ])
+           (create_enemy 50 50 10 10 up 1 1.0)
+           [];
+         test_handle_projectile_collision_with_enemy
+           "Multiple projectiles, no collision"
+           (ref [ create_proj 100 100 0 0; create_proj 200 200 0 0 ])
+           (create_enemy 50 50 10 10 up 1 1.0)
+           [ create_proj 100 100 0 0; create_proj 200 200 0 0 ];
+         test_handle_projectile_collision_with_enemy
+           "Multiple projectiles, some collisions"
+           (ref [ create_proj 55 55 0 0; create_proj 200 200 0 0 ])
+           (create_enemy 50 50 10 10 up 1 1.0)
+           [ create_proj 200 200 0 0 ];
+         test_handle_projectile_collision_with_enemy
+           "Multiple projectiles, all collide"
+           (ref [ create_proj 55 55 0 0; create_proj 56 56 0 0 ])
+           (create_enemy 50 50 10 10 up 1 1.0)
+           [];
+         test_handle_projectile_collision_with_enemy
+           "Projectile at edge of enemy's rectangle (collision)"
+           (ref [ create_proj 50 50 0 0 ])
+           (create_enemy 50 50 10 10 up 1 1.0)
+           [];
+         test_handle_projectile_collision_with_enemy
+           "Projectile just inside enemy's rectangle (collision)"
+           (ref [ create_proj 51 51 0 0 ])
+           (create_enemy 50 50 10 10 up 1 1.0)
+           [];
+         test_handle_projectile_collision_with_enemy
+           "Projectile just outside enemy's rectangle (no collision)"
+           (ref [ create_proj 61 61 0 0 ])
+           (create_enemy 50 50 10 10 up 1 1.0)
+           [ create_proj 61 61 0 0 ];
+         test_handle_projectile_collision_with_enemy
+           "Projectile collides with enemy, both at negative positions"
+           (ref [ create_proj (-45) (-45) 0 0 ])
+           (create_enemy (-50) (-50) 10 10 up 1 1.0)
+           [];
+         test_handle_projectile_collision_with_enemy
+           "Projectile at large positive position does not collide with enemy"
+           (ref [ create_proj 10000 10000 0 0 ])
+           (create_enemy 50 50 10 10 up 1 1.0)
+           [ create_proj 10000 10000 0 0 ];
+         test_handle_enemy_projectiles_with_player
+           "No projectiles, no collision" (ref [])
+           (create_player 50 50 10 10)
+           [];
+         test_handle_enemy_projectiles_with_player
+           "One projectile, no collision"
+           (ref [ create_proj 100 100 0 0 ])
+           (create_player 50 50 10 10)
+           [ create_proj 100 100 0 0 ];
+         test_handle_enemy_projectiles_with_player "One projectile, collision"
+           (ref [ create_proj 55 55 0 0 ])
+           (create_player 50 50 10 10)
+           [];
+         test_handle_enemy_projectiles_with_player
+           "Multiple projectiles, no collision"
+           (ref [ create_proj 100 100 0 0; create_proj 200 200 0 0 ])
+           (create_player 50 50 10 10)
+           [ create_proj 100 100 0 0; create_proj 200 200 0 0 ];
+         test_handle_enemy_projectiles_with_player
+           "Multiple projectiles, some collisions"
+           (ref [ create_proj 55 55 0 0; create_proj 200 200 0 0 ])
+           (create_player 50 50 10 10)
+           [ create_proj 200 200 0 0 ];
+         test_handle_enemy_projectiles_with_player
+           "Multiple projectiles, all collide"
+           (ref [ create_proj 55 55 0 0; create_proj 56 56 0 0 ])
+           (create_player 50 50 10 10)
+           [];
+         test_handle_enemy_projectiles_with_player
+           "Projectile at edge of player's rectangle (collision)"
+           (ref [ create_proj 50 50 0 0 ])
+           (create_player 50 50 10 10)
+           [];
+         test_handle_enemy_projectiles_with_player
+           "Projectile just inside player's rectangle (collision)"
+           (ref [ create_proj 51 51 0 0 ])
+           (create_player 50 50 10 10)
+           [];
+         test_handle_enemy_projectiles_with_player
+           "Projectile just outside player's rectangle (no collision)"
+           (ref [ create_proj 61 61 0 0 ])
+           (create_player 50 50 10 10)
+           [ create_proj 61 61 0 0 ];
+         test_handle_enemy_projectiles_with_player
+           "Projectile collides with player, both at negative positions"
+           (ref [ create_proj (-45) (-45) 0 0 ])
+           (create_player (-50) (-50) 10 10)
+           [];
+         test_handle_enemy_projectiles_with_player
+           "Projectile at large positive position does not collide with player"
+           (ref [ create_proj 10000 10000 0 0 ])
+           (create_player 50 50 10 10)
+           [ create_proj 10000 10000 0 0 ];
        ]
 
 let _ = run_test_tt_main tests
