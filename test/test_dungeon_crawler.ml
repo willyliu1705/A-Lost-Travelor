@@ -255,6 +255,25 @@ let test_enemy_shoot_with_delay name enemy projectiles_ref last_shot_time_ref
     (List.length !projectiles_ref)
     ~printer:string_of_int
 
+(** [test_handle_collision name projectiles_ref x y w h expected_count] is a
+    test case with [name] that checks if [handle_collision] removes the correct
+    number of colliding projectiles from [projectiles_ref]. *)
+let test_handle_collision name projectiles_ref x y w h expected_count =
+  name >:: fun _ ->
+  handle_collision projectiles_ref x y w h;
+  assert_equal expected_count
+    (List.length !projectiles_ref)
+    ~printer:string_of_int
+
+(** [test_detect_collision name projectiles_ref x y w h expected] is a test case
+    with [name] that checks if [detect_collision] correctly detects collisions
+    for the projectiles in [projectiles_ref]. *)
+let test_detect_collision name projectiles_ref x y w h expected =
+  name >:: fun _ ->
+  assert_equal expected
+    (detect_collision projectiles_ref x y w h)
+    ~printer:string_of_bool
+
 let tests =
   "test suite"
   >::: [
@@ -667,6 +686,52 @@ let tests =
            "Enemy shoots after delay that does not end in 0 or 5"
            (create_enemy 50 50 10 10 right 1 1.2)
            (ref []) (ref 0.0) 1.4 1;
+         test_handle_collision "No projectiles, no collision" (ref []) 0 0 10 10
+           0;
+         test_handle_collision "One projectile, no collision"
+           (ref [ create_proj 20 20 0 0 ])
+           0 0 10 10 1;
+         test_handle_collision "One projectile, collision"
+           (ref [ create_proj 5 5 0 0 ])
+           0 0 10 10 0;
+         test_handle_collision "Multiple projectiles, no collisions"
+           (ref [ create_proj 20 20 0 0; create_proj 30 30 0 0 ])
+           0 0 10 10 2;
+         test_handle_collision "Multiple projectiles, some collisions"
+           (ref [ create_proj 5 5 0 0; create_proj 20 20 0 0 ])
+           0 0 10 10 1;
+         test_handle_collision "Multiple projectiles, all collide"
+           (ref [ create_proj 5 5 0 0; create_proj 8 8 0 0 ])
+           0 0 10 10 0;
+         test_handle_collision "Projectile at edge of rectangle (collision)"
+           (ref [ create_proj 10 10 0 0 ])
+           0 0 10 10 0;
+         test_handle_collision "Projectile just inside rectangle (collision)"
+           (ref [ create_proj 9 9 0 0 ])
+           0 0 10 10 0;
+         test_detect_collision "No projectiles, no collision" (ref []) 0 0 10 10
+           false;
+         test_detect_collision "One projectile, no collision"
+           (ref [ create_proj 20 20 0 0 ])
+           0 0 10 10 false;
+         test_detect_collision "One projectile, collision"
+           (ref [ create_proj 5 5 0 0 ])
+           0 0 10 10 true;
+         test_detect_collision "Multiple projectiles, no collisions"
+           (ref [ create_proj 20 20 0 0; create_proj 30 30 0 0 ])
+           0 0 10 10 false;
+         test_detect_collision "Multiple projectiles, one collision"
+           (ref [ create_proj 5 5 0 0; create_proj 20 20 0 0 ])
+           0 0 10 10 true;
+         test_detect_collision "Multiple projectiles, all collide"
+           (ref [ create_proj 5 5 0 0; create_proj 8 8 0 0 ])
+           0 0 10 10 true;
+         test_detect_collision "Projectile at edge of rectangle (collision)"
+           (ref [ create_proj 10 10 0 0 ])
+           0 0 10 10 true;
+         test_detect_collision "Projectile just inside rectangle (collision)"
+           (ref [ create_proj 9 9 0 0 ])
+           0 0 10 10 true;
        ]
 
 let _ = run_test_tt_main tests
