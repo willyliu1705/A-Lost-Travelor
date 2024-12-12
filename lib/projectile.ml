@@ -5,6 +5,8 @@ type t = {
   dy : int;
 }
 
+let player_projectiles = ref []
+let enemy_projectiles = ref []
 let create_proj x y dx dy = { x; y; dx; dy }
 let move_proj p = { p with x = p.x + p.dx; y = p.y + p.dy }
 

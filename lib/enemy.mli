@@ -1,6 +1,9 @@
 type t
 (** Abstract type representing an enemy. *)
 
+val enemy_last_shot_time : float ref
+(** [enemy_last_shot_time] is the time of the last shot by an enemy. *)
+
 val create_enemy : int -> int -> int -> int -> Direction.t -> int -> float -> t
 (** [create_enemy x y w h dir projectile_speed shooting_delay] creates an enemy
     at position ([x], [y]) in Cartesian coordinates with width [w], height [h],

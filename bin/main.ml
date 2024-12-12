@@ -13,17 +13,14 @@ let player1 = create_player 40 40 10 10
    the enemy's line of sight from the right compared to the left; as a result,
    this causes the enemy to not shoot at the player when its supposed to. ) *)
 
-let player_projectiles = ref []
-let enemy_projectiles = ref []
 let player_direction = ref right (* Change player default direction here *)
 
 (* Enemies should be the same size or larger than the player to prevent
    unintended interactions and misalignment issues for enemy line of sight
    between the enemy and the player (an example is described above). *)
 let enemy1 = create_enemy 50 50 50 50 up 1 1.0
-let enemy2 = create_enemy 10 10 10 10 right 1 5.0
-let enemy3 = create_enemy 10 30 10 10 right 1 10.0
-let enemy_last_shot_time = ref 0.0
+let enemy2 = create_enemy 10 10 10 10 right 1 2.0
+let enemy3 = create_enemy 10 30 10 10 right 1 0.5
 
 let draw_player player =
   draw_rect (current_x_pos player) (current_y_pos player) (get_width player)
@@ -42,7 +39,7 @@ let draw_projectiles projectiles =
   List.iter
     (fun p ->
       let x, y = get_proj_position p in
-      draw_rect x y 5 5)
+      draw_circle x y 3)
     projectiles
 
 let move_projectiles projectiles =

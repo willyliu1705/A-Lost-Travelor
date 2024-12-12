@@ -8,6 +8,8 @@ type t = {
   shooting_delay : float;
 }
 
+let enemy_last_shot_time = ref 0.0
+
 let create_enemy x y w h dir projectile_speed shooting_delay =
   {
     x;
