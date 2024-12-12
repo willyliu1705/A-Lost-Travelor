@@ -35,3 +35,11 @@ let player_shoot player projectiles_ref direction =
       dx dy
   in
   projectiles_ref := new_projectile :: !projectiles_ref
+
+let handle_enemy_projectiles_with_player enemy_projectiles player =
+  let px = current_x_pos player in
+  let py = current_y_pos player in
+  let pw = get_width player in
+  let ph = get_height player in
+  if Projectile.detect_collision enemy_projectiles px py pw ph then
+    Projectile.handle_collision enemy_projectiles px py pw ph

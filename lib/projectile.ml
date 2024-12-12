@@ -19,11 +19,11 @@ let collision_helper proj x y w h =
   let px, py = get_proj_position proj in
   px >= x && px <= x + w && py >= y && py <= y + h
 
+let detect_collision projectiles_ref x y w h =
+  List.exists (fun proj -> collision_helper proj x y w h) !projectiles_ref
+
 let handle_collision projectiles_ref x y w h =
   projectiles_ref :=
     List.filter
       (fun proj -> not (collision_helper proj x y w h))
       !projectiles_ref
-
-let detect_collision projectiles_ref x y w h =
-  List.exists (fun proj -> collision_helper proj x y w h) !projectiles_ref
