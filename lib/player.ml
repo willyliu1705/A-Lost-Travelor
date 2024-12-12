@@ -34,3 +34,21 @@ let get_corners obj =
     width = current_y_pos obj + get_width obj;
     hp = get_hp obj;
   }
+
+let player_shoot player projectiles_ref direction =
+  let dx, dy = Direction.to_player_projectile_delta direction in
+  let new_projectile =
+    Projectile.create_proj
+      (current_x_pos player + (get_width player / 2))
+      (current_y_pos player + (get_height player / 2))
+      dx dy
+  in
+  projectiles_ref := new_projectile :: !projectiles_ref
+
+let handle_enemy_projectiles_with_player enemy_projectiles player =
+  let px = current_x_pos player in
+  let py = current_y_pos player in
+  let pw = get_width player in
+  let ph = get_height player in
+  if Projectile.detect_collision enemy_projectiles px py pw ph then
+    Projectile.handle_collision enemy_projectiles px py pw ph

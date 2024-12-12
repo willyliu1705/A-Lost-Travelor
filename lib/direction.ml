@@ -35,6 +35,7 @@ let is_right = function
 
 let player_speed = 10
 let player_projectile_speed = 5
+let player_direction = ref right
 
 let to_player_delta = function
   | Up -> (0, player_speed)

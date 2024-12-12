@@ -111,16 +111,6 @@ let move_projectiles projectiles =
   projectiles |> List.map move_proj
   |> List.filter (fun p -> in_bounds p screen_width screen_height)
 
-let player_shoot player projectiles_ref direction =
-  let dx, dy = to_player_projectile_delta direction in
-  let new_projectile =
-    create_proj
-      (current_x_pos player + (get_width player / 2))
-      (current_y_pos player + (get_height player / 2))
-      dx dy
-  in
-  projectiles_ref := new_projectile :: !projectiles_ref
-
 let update_enemy enemy =
   if aligned_with_player enemy (current_x_pos player1, current_y_pos player1)
   then
