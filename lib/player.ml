@@ -49,10 +49,21 @@ let player_shoot player projectiles_ref direction =
   in
   projectiles_ref := new_projectile :: !projectiles_ref
 
-let handle_enemy_projectiles_with_player enemy_projectiles player =
-  let px = current_x_pos player in
-  let py = current_y_pos player in
-  let pw = get_width player in
-  let ph = get_height player in
-  if Projectile.detect_collision enemy_projectiles px py pw ph then
-    Projectile.handle_collision enemy_projectiles px py pw ph
+let handle_enemy_projectiles_with_player projectiles_ref player =
+  let player_x = current_x_pos player in
+  let player_y = current_y_pos player in
+  let player_w = get_width player in
+  let player_h = get_height player in
+  projectiles_ref :=
+    List.filter
+      (fun proj ->
+        let proj_x, proj_y = Projectile.get_proj_position proj in
+        let collision =
+          proj_x >= player_x
+          && proj_x <= player_x + player_w
+          && proj_y >= player_y
+          && proj_y <= player_y + player_h
+        in
+        if collision then change_hp player (-10);
+        not collision)
+      !projectiles_ref

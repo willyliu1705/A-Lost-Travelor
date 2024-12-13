@@ -28,7 +28,7 @@ let gray = rgb 211 211 211
 (* player has to be sufficiently small or else weird interactions will occur
    with the enemy entities (e.g. enemy sees the player "faster" when entering
    the enemy's line of sight from the right compared to the left; as a result,
-   this causes the enemy to not shoot at the player when its supposed to. ) *)
+   this causes the enemy to not shoot at the player when its supposed to). *)
 let player1 = create_player 150 450 30 30
 
 let walls =
@@ -155,6 +155,7 @@ let move_player_no_collision player dx dy walls =
   else move_player player dx dy (* Allow movement if no collision *)
 
 let update_player player walls =
+  handle_enemy_projectiles_with_player enemy_projectiles player;
   if key_pressed () then
     match read_key () with
     | key -> (
@@ -162,8 +163,7 @@ let update_player player walls =
         | Some dir ->
             player_direction := dir;
             let dx, dy = to_player_delta dir in
-            move_player_no_collision player dx dy
-              walls (* Move with collision check *)
+            move_player_no_collision player dx dy walls
         | None ->
             if key = ' ' then
               let () =
@@ -175,6 +175,16 @@ let update_player player walls =
               if current_time -. !last_heal_time >= 15.0 then (
                 change_hp player 5;
                 last_heal_time := current_time))
+
+let handle_player_projectiles_with_enemies projectiles_ref enemies =
+  enemies.list_of_enemies <-
+    List.filter
+      (fun enemy ->
+        let initial_projectile_count = List.length !projectiles_ref in
+        handle_projectile_collision_with_enemy projectiles_ref enemy;
+        let remaining_projectile_count = List.length !projectiles_ref in
+        initial_projectile_count = remaining_projectile_count)
+      enemies.list_of_enemies
 
 let draw_heal_ability () =
   set_line_width 3;
@@ -219,6 +229,9 @@ let enemy1 = create_random_enemy room_counter.room_counter
 let enemy2 = create_random_enemy room_counter.room_counter
 let enemy3 = create_random_enemy room_counter.room_counter
 
+(* Don't forget to add any new enemies to the list below. *)
+let () = list_of_enemies.list_of_enemies <- [ enemy1; enemy2; enemy3 ]
+
 let draw_enemy enemy =
   let x = enemy_x_pos enemy in
   let y = enemy_y_pos enemy in
@@ -228,15 +241,19 @@ let draw_enemy enemy =
   draw_rect x y w h;
   set_color black
 
-let draw_enemies () =
-  draw_enemy enemy1;
-  draw_enemy enemy2;
-  draw_enemy enemy3
+let draw_enemies enemies = List.iter draw_enemy enemies.list_of_enemies
 
-let update_enemies () =
-  update_enemy enemy1;
-  update_enemy enemy2;
-  update_enemy enemy3
+let update_enemies_and_projectiles projectiles_ref enemies =
+  handle_player_projectiles_with_enemies projectiles_ref enemies;
+  let current_time = Unix.gettimeofday () in
+  List.iter
+    (fun enemy ->
+      if aligned_with_player enemy (current_x_pos player1, current_y_pos player1)
+      then
+        enemy_shoot enemy enemy_projectiles enemy_last_shot_time
+          (get_shooting_delay enemy) current_time)
+    enemies.list_of_enemies;
+  player_projectiles := move_projectiles !player_projectiles
 
 let draw_pressure_plate x y w h =
   set_color black;
@@ -250,7 +267,8 @@ let draw_pressure_plate x y w h =
   then room_completed.completed <- true
 
 let draw_button action next_room =
-  set_color gray;
+  set_color white;
+  set_line_width 2;
   draw_rect_centered 954 193 375 120;
   moveto 913 193;
   draw_string ("PRESS TO " ^ action);
@@ -404,20 +422,16 @@ let draw_tutorial_room_2 () =
   set_color red;
   draw_player player1;
   draw_hp_bar ();
+  draw_enemies list_of_enemies;
+  update_enemies_and_projectiles player_projectiles list_of_enemies;
   draw_heal_ability ();
   update_player player1 walls;
   draw_projectiles !player_projectiles;
-  player_projectiles := move_projectiles !player_projectiles;
-  draw_enemies ();
-  update_enemies ();
   draw_projectiles !enemy_projectiles;
   enemy_projectiles := move_projectiles !enemy_projectiles;
   synchronize ()
 
 let draw_tutorial_room_3 () = ()
-
-(* draw_projectiles !enemy_projectiles; draw_enemy enemy; update_enemy enemy;
-   enemy_projectiles := move_projectiles !enemy_projectiles; *)
 
 let rec clear_input_queue () =
   if key_pressed () then
@@ -434,7 +448,7 @@ let draw_game_over () =
   clear_input_queue ();
   set_color black;
   fill_rect 0 0 1908 987;
-  moveto 953 493;
+  moveto 925 493;
   set_color red;
   draw_string "GAME OVER";
   draw_button "RESTART" "Start Menu";
@@ -452,7 +466,7 @@ let draw_screens keyword =
 
 let () =
   open_graph "";
-  set_window_title "Amazing Game";
+  set_window_title "A Lost Traveler";
   while true do
     auto_synchronize false;
     open_graph " 1908x987";

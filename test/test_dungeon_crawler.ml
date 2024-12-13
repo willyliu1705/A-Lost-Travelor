@@ -10,13 +10,13 @@ let string_of_option = function
   | Some _ -> "Some direction"
   | None -> "None"
 
-let string_of_projectiles projectiles =
+let string_of_list lst =
   String.concat "; "
     (List.map
        (fun proj ->
          let x, y = get_proj_position proj in
          Printf.sprintf "(%d, %d)" x y)
-       projectiles)
+       lst)
 
 (** [test_current_x name input expected_output] is a test case with [name] that
     checks if the current x of the player [input] is equal to [expected_x]. *)
@@ -289,8 +289,7 @@ let test_detect_collision name projectiles_ref x y w h expected =
 let test_player_shoot name player projectiles_ref dir expected_projectiles =
   name >:: fun _ ->
   player_shoot player projectiles_ref dir;
-  assert_equal expected_projectiles !projectiles_ref
-    ~printer:string_of_projectiles
+  assert_equal expected_projectiles !projectiles_ref ~printer:string_of_list
 
 (** [test_handle_projectile_collision_with_enemy name projectiles_ref enemy expected_projectiles]
     is a test case with [name] that checks if calling
@@ -300,8 +299,7 @@ let test_handle_projectile_collision_with_enemy name projectiles_ref enemy
     expected_projectiles =
   name >:: fun _ ->
   handle_projectile_collision_with_enemy projectiles_ref enemy;
-  assert_equal expected_projectiles !projectiles_ref
-    ~printer:string_of_projectiles
+  assert_equal expected_projectiles !projectiles_ref ~printer:string_of_list
 
 (** [test_handle_enemy_projectiles_with_player name enemy_projectiles player expected_projectiles]
     is a test case with [name] that checks if calling
@@ -311,8 +309,7 @@ let test_handle_enemy_projectiles_with_player name enemy_projectiles player
     expected_projectiles =
   name >:: fun _ ->
   handle_enemy_projectiles_with_player enemy_projectiles player;
-  assert_equal expected_projectiles !enemy_projectiles
-    ~printer:string_of_projectiles
+  assert_equal expected_projectiles !enemy_projectiles ~printer:string_of_list
 
 let tests =
   "test suite"
@@ -839,7 +836,7 @@ let tests =
            (create_enemy 50 50 10 10 up 1.0 1.0)
            [ create_proj 100 100 0 0; create_proj 200 200 0 0 ];
          test_handle_projectile_collision_with_enemy
-           "Multiple projectiles, some collisions"
+           "Multiple projectiles, some collisions of enemy"
            (ref [ create_proj 55 55 0 0; create_proj 200 200 0 0 ])
            (create_enemy 50 50 10 10 up 1.0 1.0)
            [ create_proj 200 200 0 0 ];
@@ -892,10 +889,10 @@ let tests =
            (create_player 50 50 10 10)
            [ create_proj 100 100 0 0; create_proj 200 200 0 0 ];
          test_handle_enemy_projectiles_with_player
-           "Multiple projectiles, some collisions"
-           (ref [ create_proj 55 55 0 0; create_proj 200 200 0 0 ])
+           "Multiple projectiles, some collisions of player"
+           (ref [ create_proj 61 61 0 0; create_proj 200 200 0 0 ])
            (create_player 50 50 10 10)
-           [ create_proj 200 200 0 0 ];
+           [ create_proj 61 61 0 0; create_proj 200 200 0 0 ];
          test_handle_enemy_projectiles_with_player
            "Multiple projectiles, all collide"
            (ref [ create_proj 55 55 0 0; create_proj 56 56 0 0 ])
