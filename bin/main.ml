@@ -150,7 +150,7 @@ let create_random_enemy room_difficulty =
     (Random.int 10 + get_width player1)
     (Random.int 10 + get_height player1)
     array_of_possible_directions.(Random.int 4)
-    (1 + room_difficulty)
+    (1. +. (float_of_int room_difficulty /. 10.))
     (let shooting_delay = 5. -. Random.float (float_of_int room_difficulty) in
      if shooting_delay >= 0.25 then shooting_delay else 0.25)
 
