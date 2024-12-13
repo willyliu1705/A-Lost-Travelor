@@ -3,6 +3,7 @@ open Dungeon_crawler.Player
 open Dungeon_crawler.Projectile
 open Dungeon_crawler.Direction
 open Dungeon_crawler.Enemy
+open Dungeon_crawler.Wall
 
 type keyword = { mutable word : string }
 
@@ -22,7 +23,7 @@ type list_of_enemies = {
 
 let list_of_enemies = { list_of_enemies = [] }
 let brown = rgb 150 75 0
-let player1 = create_player 150 450 30 30
+let gray = rgb 211 211 211
 
 (* player has to be sufficiently small or else weird interactions will occur
    with the enemy entities (e.g. enemy sees the player "faster" when entering
@@ -30,9 +31,19 @@ let player1 = create_player 150 450 30 30
    this causes the enemy to not shoot at the player when its supposed to). *)
 let player1 = create_player 150 450 30 30
 
-(** [draw_rect_centered] draws the rectangle centered at point [x], [y] with
-    width [w] and height [h].*)
+let walls =
+  [
+    Dungeon_crawler.Wall.create_wall 0 60 910 60;
+    Dungeon_crawler.Wall.create_wall 1015 60 1810 60;
+    Dungeon_crawler.Wall.create_wall 0 890 910 890;
+    Dungeon_crawler.Wall.create_wall 1015 890 1810 890;
+    Dungeon_crawler.Wall.create_wall 8 60 8 890;
+    Dungeon_crawler.Wall.create_wall 1810 60 1810 400;
+    Dungeon_crawler.Wall.create_wall 1810 540 1810 890;
+  ]
+
 let draw_rect_centered x y w h = draw_rect (x - (w / 2)) (y - (h / 2)) w h
+let fill_rect_centered x y w h = fill_rect (x - (w / 2)) (y - (h / 2)) w h
 
 let draw_player player =
   let () = set_color red in
@@ -119,8 +130,31 @@ let update_enemy enemy =
     enemy_shoot enemy enemy_projectiles enemy_last_shot_time delay
       (Unix.gettimeofday ())
 
-let update_player player =
-  handle_enemy_projectiles_with_player enemy_projectiles player;
+(* Collision detection between two rectangles *)
+let rectangles_intersect (x1, y1, w1, h1) (x2, y2, w2, h2) =
+  (* Check if there is overlap between the player’s rectangle and the wall’s
+     rectangle *)
+  x1 < x2 + w2 && x1 + w1 > x2 && y1 < y2 + h2 && y1 + h1 > y2
+
+let move_player_no_collision player dx dy walls =
+  let new_x = current_x_pos player + dx in
+  let new_y = current_y_pos player + dy in
+
+  (* Check for collision with walls *)
+  if
+    List.exists
+      (fun wall ->
+        let wall_x, wall_y = get_wall_position wall in
+        let wall_w, wall_h = get_wall_size wall in
+        (* Check if the player's new position collides with the wall *)
+        let player_rect = (new_x, new_y, get_width player, get_height player) in
+        let wall_rect = (wall_x, wall_y, wall_w, wall_h) in
+        rectangles_intersect player_rect wall_rect)
+      walls
+  then () (* No movement if there is a collision *)
+  else move_player player dx dy (* Allow movement if no collision *)
+
+let update_player player walls =
   if key_pressed () then
     match read_key () with
     | key -> (
@@ -128,7 +162,8 @@ let update_player player =
         | Some dir ->
             player_direction := dir;
             let dx, dy = to_player_delta dir in
-            move_player player dx dy
+            move_player_no_collision player dx dy
+              walls (* Move with collision check *)
         | None ->
             if key = ' ' then
               let () =
@@ -141,6 +176,7 @@ let update_player player =
                 change_hp player 5;
                 last_heal_time := current_time))
 
+
 let handle_player_projectiles_with_enemies projectiles_ref enemies =
   enemies.list_of_enemies <-
     List.filter
@@ -150,6 +186,28 @@ let handle_player_projectiles_with_enemies projectiles_ref enemies =
         let remaining_projectile_count = List.length !projectiles_ref in
         initial_projectile_count = remaining_projectile_count)
       enemies.list_of_enemies
+
+let draw_heal_ability () =
+  set_line_width 3;
+  set_color white;
+  fill_rect 90 27 41 45;
+  set_color black;
+  draw_rect_centered 110 50 32 8;
+  draw_rect_centered 110 50 8 32;
+  draw_rect_centered 110 50 45 50;
+  set_color yellow;
+  fill_rect_centered 110 50 32 8;
+  fill_rect_centered 110 50 8 32;
+  set_color gray;
+  fill_rect 90 27 41
+    (let time_elapsed = Unix.gettimeofday () -. !last_heal_time in
+     if time_elapsed < 15. then (15 - int_of_float time_elapsed) * 3 else 0);
+  moveto 93 31;
+  set_color red;
+  let time_elapsed = Unix.gettimeofday () -. !last_heal_time in
+  if time_elapsed < 15. then
+    draw_string (string_of_int (15 - int_of_float time_elapsed))
+  else draw_string "Q"
 
 let () = Random.self_init ()
 let array_of_possible_directions = [| left; right; up; down |]
@@ -244,6 +302,16 @@ let draw_start_menu () =
 
 (* THESE ARE THE COORDINATES OF THE WALLS *)
 let draw_normal_room_boundaries () =
+  set_color gray;
+  fill_rect 0 0 100 987;
+  fill_rect 101 887 1706 100;
+  fill_rect 1807 0 101 987;
+  fill_rect 100 0 1706 100;
+  if room_completed.completed then (
+    set_color (rgb 118 209 247);
+    fill_rect 903 886 101 101;
+    fill_rect 1807 443 101 101;
+    fill_rect 903 0 101 101);
   set_color black;
   set_line_width 10;
   draw_segments
@@ -320,7 +388,8 @@ let draw_tutorial_room_1 () =
   set_color red;
   draw_player player1;
   draw_hp_bar ();
-  update_player player1;
+  draw_heal_ability ();
+  update_player player1 walls;
   draw_projectiles !player_projectiles;
   player_projectiles := move_projectiles !player_projectiles;
   draw_pressure_plate 954 493 50 50;
@@ -353,9 +422,10 @@ let draw_tutorial_room_2 () =
   set_color red;
   draw_player player1;
   draw_hp_bar ();
-  update_player player1;
   draw_enemies list_of_enemies;
   update_enemies_and_projectiles player_projectiles list_of_enemies;
+  draw_heal_ability ();
+  update_player player1 walls;
   draw_projectiles !player_projectiles;
   draw_projectiles !enemy_projectiles;
   enemy_projectiles := move_projectiles !enemy_projectiles;
@@ -374,6 +444,7 @@ let rec clear_input_queue () =
 let draw_game_over () =
   clear_all_projectiles ();
   change_hp player1 (-(get_hp player1 - 100));
+  last_heal_time := 15.0;
   move_player_absolute player1 150 450;
   room_completed.completed <- false;
   room_counter.room_counter <- 0;
