@@ -22,9 +22,9 @@ let player1 = create_player 150 450 30 30
 (* Enemies should be the same size or larger than the player to prevent
    unintended interactions and misalignment issues for enemy line of sight
    between the enemy and the player (an example is described above). *)
-let enemy1 = create_enemy 400 500 50 50 up 1 1.0
-let enemy2 = create_enemy 200 250 10 10 right 1 2.0
-let enemy3 = create_enemy 350 700 10 10 right 1 0.5
+let enemy1 = create_enemy 400 500 50 50 up 1.0 1.0
+let enemy2 = create_enemy 200 250 10 10 right 1.0 2.0
+let enemy3 = create_enemy 350 700 10 10 right 1.0 0.5
 
 (** [draw_rect_centered] draws the rectangle centered at point [x], [y] with
     width [w] and height [h].*)
