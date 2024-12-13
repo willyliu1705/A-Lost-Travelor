@@ -10,13 +10,13 @@ let string_of_option = function
   | Some _ -> "Some direction"
   | None -> "None"
 
-let string_of_projectiles projectiles =
+let string_of_list lst =
   String.concat "; "
     (List.map
        (fun proj ->
          let x, y = get_proj_position proj in
          Printf.sprintf "(%d, %d)" x y)
-       projectiles)
+       lst)
 
 (** [test_current_x name input expected_output] is a test case with [name] that
     checks if the current x of the player [input] is equal to [expected_x]. *)
@@ -289,8 +289,7 @@ let test_detect_collision name projectiles_ref x y w h expected =
 let test_player_shoot name player projectiles_ref dir expected_projectiles =
   name >:: fun _ ->
   player_shoot player projectiles_ref dir;
-  assert_equal expected_projectiles !projectiles_ref
-    ~printer:string_of_projectiles
+  assert_equal expected_projectiles !projectiles_ref ~printer:string_of_list
 
 (** [test_handle_projectile_collision_with_enemy name projectiles_ref enemy expected_projectiles]
     is a test case with [name] that checks if calling
@@ -300,8 +299,7 @@ let test_handle_projectile_collision_with_enemy name projectiles_ref enemy
     expected_projectiles =
   name >:: fun _ ->
   handle_projectile_collision_with_enemy projectiles_ref enemy;
-  assert_equal expected_projectiles !projectiles_ref
-    ~printer:string_of_projectiles
+  assert_equal expected_projectiles !projectiles_ref ~printer:string_of_list
 
 (** [test_handle_enemy_projectiles_with_player name enemy_projectiles player expected_projectiles]
     is a test case with [name] that checks if calling
@@ -311,8 +309,7 @@ let test_handle_enemy_projectiles_with_player name enemy_projectiles player
     expected_projectiles =
   name >:: fun _ ->
   handle_enemy_projectiles_with_player enemy_projectiles player;
-  assert_equal expected_projectiles !enemy_projectiles
-    ~printer:string_of_projectiles
+  assert_equal expected_projectiles !enemy_projectiles ~printer:string_of_list
 
 let tests =
   "test suite"
