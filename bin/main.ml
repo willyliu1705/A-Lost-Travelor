@@ -23,6 +23,7 @@ type list_of_enemies = {
 
 let list_of_enemies = { list_of_enemies = [] }
 let brown = rgb 150 75 0
+let gray = rgb 211 211 211
 
 (* player has to be sufficiently small or else weird interactions will occur
    with the enemy entities (e.g. enemy sees the player "faster" when entering
@@ -42,7 +43,6 @@ let walls =
   ]
 
 let draw_rect_centered x y w h = draw_rect (x - (w / 2)) (y - (h / 2)) w h
-
 let fill_rect_centered x y w h = fill_rect (x - (w / 2)) (y - (h / 2)) w h
 
 let draw_player player =
@@ -251,6 +251,7 @@ let draw_pressure_plate x y w h =
 
 let draw_button action next_room =
   set_color white;
+  set_line_width 2;
   draw_rect_centered 954 193 375 120;
   moveto 913 193;
   draw_string ("PRESS TO " ^ action);
@@ -416,9 +417,6 @@ let draw_tutorial_room_2 () =
 
 let draw_tutorial_room_3 () = ()
 
-(* draw_projectiles !enemy_projectiles; draw_enemy enemy; update_enemy enemy;
-   enemy_projectiles := move_projectiles !enemy_projectiles; *)
-
 let rec clear_input_queue () =
   if key_pressed () then
     let _ = read_key () in
@@ -434,7 +432,7 @@ let draw_game_over () =
   clear_input_queue ();
   set_color black;
   fill_rect 0 0 1908 987;
-  moveto 953 493;
+  moveto 925 493;
   set_color red;
   draw_string "GAME OVER";
   draw_button "RESTART" "Start Menu";
@@ -452,7 +450,7 @@ let draw_screens keyword =
 
 let () =
   open_graph "";
-  set_window_title "Amazing Game";
+  set_window_title "A Lost Traveler";
   while true do
     auto_synchronize false;
     open_graph " 1908x987";
