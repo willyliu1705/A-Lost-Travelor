@@ -6,8 +6,13 @@ type t = {
 }
 
 let create_wall x y width height = { x; y; width; height }
-let get_wall_position w = (w.x, w.y)
-let get_wall_size w = (w.width, w.height)
+let wall_x_pos wall = wall.x
+let wall_y_pos wall = wall.y
+let get_wall_width wall = wall.width
+let get_wall_height wall = wall.height
 
-let in_wall_bounds w width height =
-  w.x >= 0 && w.x + w.width <= width && w.y >= 0 && w.y + w.height <= height
+let in_wall_bounds wall width height =
+  wall.x >= 0
+  && wall.x + wall.width <= width
+  && wall.y >= 0
+  && wall.y + wall.height <= height
