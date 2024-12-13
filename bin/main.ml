@@ -58,10 +58,9 @@ let changed_walls =
     create_wall 1810 540 1810 890;
   ]
 
-(* Helper function to get the correct set of walls based on room completion *)
 let get_current_walls () =
+  (* Return the changed walls if the room is completed *)
   if room_completed.completed then changed_walls
-    (* Return the changed walls if the room is completed *)
   else walls (* Return the original walls if the room is not completed *)
 
 let draw_rect_centered x y w h = draw_rect (x - (w / 2)) (y - (h / 2)) w h
@@ -105,17 +104,12 @@ let update_enemy enemy =
     enemy_shoot enemy enemy_projectiles enemy_last_shot_time delay
       (Unix.gettimeofday ())
 
-(* Collision detection between two rectangles *)
 let rectangles_intersect (x1, y1, w1, h1) (x2, y2, w2, h2) =
-  (* Check if there is overlap between the player’s rectangle and the wall’s
-     rectangle *)
   x1 < x2 + w2 && x1 + w1 > x2 && y1 < y2 + h2 && y1 + h1 > y2
 
 let move_player_no_collision player dx dy walls =
   let new_x = current_x_pos player + dx in
   let new_y = current_y_pos player + dy in
-
-  (* Check for collision with walls *)
   if
     List.exists
       (fun wall ->
@@ -123,13 +117,12 @@ let move_player_no_collision player dx dy walls =
         let wall_y = wall_y_pos wall in
         let wall_w = get_wall_width wall in
         let wall_h = get_wall_height wall in
-        (* Check if the player's new position collides with the wall *)
         let player_rect = (new_x, new_y, get_width player, get_height player) in
         let wall_rect = (wall_x, wall_y, wall_w, wall_h) in
         rectangles_intersect player_rect wall_rect)
       walls
-  then () (* No movement if there is a collision *)
-  else move_player player dx dy (* Allow movement if no collision *)
+  then ()
+  else move_player player dx dy
 
 let update_player player walls =
   handle_enemy_projectiles_with_player enemy_projectiles player;
@@ -141,7 +134,6 @@ let update_player player walls =
             player_direction := dir;
             let dx, dy = to_player_delta dir in
             let current_walls = get_current_walls () in
-            (* Get the correct walls for collision detection *)
             move_player_no_collision player dx dy current_walls
         | None ->
             if key = ' ' then
@@ -333,7 +325,6 @@ let draw_start_menu () =
   draw_string "A Lost Traveler";
   synchronize ()
 
-(* THESE ARE THE COORDINATES OF THE WALLS *)
 let draw_normal_room_boundaries () =
   set_color gray;
   fill_rect 0 0 100 987;
