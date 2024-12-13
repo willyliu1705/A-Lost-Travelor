@@ -150,7 +150,7 @@ let update_player player walls =
             else if key = 'q' then
               let current_time = Unix.gettimeofday () in
               if current_time -. !last_heal_time >= 15.0 then (
-                change_hp player 5;
+                change_hp player 20;
                 last_heal_time := current_time))
 
 let handle_player_projectiles_with_enemies projectiles_ref enemies =
@@ -540,7 +540,7 @@ let draw_room_4 () =
      let () = draw_closed_room_doors () in
      let () = set_color brown in
      let () = moveto 30 920 in
-     draw_string "Keep going!");
+     draw_string "Are you tired yet?");
   set_line_width 2;
   set_color red;
   draw_player player1;
@@ -596,6 +596,7 @@ let draw_game_over () =
   move_player_absolute player1 150 450;
   room_completed.completed <- false;
   room_counter.room_counter <- 0;
+  list_of_enemies.list_of_enemies <- [];
   clear_input_queue ();
   set_color black;
   fill_rect 0 0 1908 987;
