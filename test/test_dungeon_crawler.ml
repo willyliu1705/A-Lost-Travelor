@@ -3,6 +3,7 @@ open Dungeon_crawler.Player
 open Dungeon_crawler.Projectile
 open Dungeon_crawler.Direction
 open Dungeon_crawler.Enemy
+open Dungeon_crawler.Wall
 
 let string_of_tuple (x, y) = Printf.sprintf "(%d, %d)" x y
 
@@ -310,6 +311,82 @@ let test_handle_enemy_projectiles_with_player name enemy_projectiles player
   name >:: fun _ ->
   handle_enemy_projectiles_with_player enemy_projectiles player;
   assert_equal expected_projectiles !enemy_projectiles ~printer:string_of_list
+
+(** [test_move_player_absolute name player x y expected_x expected_y] is a test
+    case with [name] that checks if moving the [player] to the absolute
+    coordinates ([x], [y]) results in the expected position ([expected_x],
+    [expected_y]). *)
+let test_move_player_absolute name player x y expected_x expected_y =
+  name >:: fun _ ->
+  let () = move_player_absolute player x y in
+  assert_equal expected_x (current_x_pos player) ~printer:string_of_int;
+  assert_equal expected_y (current_y_pos player) ~printer:string_of_int
+
+(** [test_change_hp name player amount expected_hp] is a test case with [name]
+    that checks if changing the [player]'s hp by [amount] results in the
+    [expected_hp]. *)
+let test_change_hp name player amount expected_hp =
+  name >:: fun _ ->
+  let () = change_hp player amount in
+  assert_equal expected_hp (get_hp player) ~printer:string_of_int
+
+(** [test_clear_all_projectiles name initial_player_projs initial_enemy_projs]
+    is a test case with [name] that checks if calling [clear_all_projectiles]
+    clears both the player and enemy projectile lists. *)
+let test_clear_all_projectiles name initial_player_projs initial_enemy_projs =
+  name >:: fun _ ->
+  player_projectiles := initial_player_projs;
+  enemy_projectiles := initial_enemy_projs;
+  clear_all_projectiles ();
+  assert_equal [] !player_projectiles ~printer:string_of_list;
+  assert_equal [] !enemy_projectiles ~printer:string_of_list
+
+(** [test_create_wall name x y width height expected] is a test case with [name]
+    that checks if creating a wall with [x], [y], [width], and [height] results
+    in the expected wall. *)
+let test_create_wall name x y width height expected_x expected_y expected_width
+    expected_height =
+  name >:: fun _ ->
+  let wall = create_wall x y width height in
+  assert_equal expected_x (wall_x_pos wall) ~printer:string_of_int;
+  assert_equal expected_y (wall_y_pos wall) ~printer:string_of_int;
+  assert_equal expected_width (get_wall_width wall) ~printer:string_of_int;
+  assert_equal expected_height (get_wall_height wall) ~printer:string_of_int
+
+(** [test_wall_x_pos name wall expected_x] is a test case with [name] that
+    checks if [wall_x_pos wall] gives [expected_x]. *)
+let test_wall_x_pos name wall expected_x =
+  name >:: fun _ ->
+  assert_equal expected_x (wall_x_pos wall) ~printer:string_of_int
+
+(** [test_wall_y_pos name wall expected_y] is a test case with [name] that
+    checks if [wall_y_pos wall] gives [expected_y]. *)
+let test_wall_y_pos name wall expected_y =
+  name >:: fun _ ->
+  assert_equal expected_y (wall_y_pos wall) ~printer:string_of_int
+
+(** [test_get_wall_width name wall expected_width] is a test case with [name]
+    that checks if [get_wall_width wall] gives [expected_width]. *)
+let test_get_wall_width name wall expected_width =
+  name >:: fun _ ->
+  assert_equal expected_width (get_wall_width wall) ~printer:string_of_int
+
+(** [test_get_wall_height name wall expected_height] is a test case with [name]
+    that checks if [get_wall_height wall] gives [expected_height]. *)
+let test_get_wall_height name wall expected_height =
+  name >:: fun _ ->
+  assert_equal expected_height (get_wall_height wall) ~printer:string_of_int
+
+(** [test_in_wall_bounds name wall width height expected] is a test case with
+    [name] that checks if [in_wall_bounds wall width height] gives [expected]. *)
+let test_in_wall_bounds name wall width height expected =
+  name >:: fun _ ->
+  assert_equal expected
+    (in_wall_bounds wall width height)
+    ~printer:string_of_bool
+
+let example_player = create_player 0 0 10 10
+let () = change_hp example_player (-20)
 
 let tests =
   "test suite"
@@ -923,6 +1000,85 @@ let tests =
            (ref [ create_proj 10000 10000 0 0 ])
            (create_player 50 50 10 10)
            [ create_proj 10000 10000 0 0 ];
+         test_move_player_absolute "move player to origin"
+           (create_player 50 50 10 10)
+           0 0 0 0;
+         test_move_player_absolute "move player to positive coordinates"
+           (create_player 0 0 10 10) 100 200 100 200;
+         test_move_player_absolute "move player to negative coordinates"
+           (create_player 50 50 10 10)
+           (-10) (-20) (-10) (-20);
+         test_move_player_absolute "move player to large positive coordinates"
+           (create_player 0 0 10 10) max_int max_int max_int max_int;
+         test_move_player_absolute "move player to large negative coordinates"
+           (create_player 0 0 10 10) (-max_int) (-max_int) (-max_int) (-max_int);
+         test_move_player_absolute
+           "move player to mixed positive and negative coordinates"
+           (create_player 100 200 10 10)
+           (-50) 75 (-50) 75;
+         test_move_player_absolute
+           "move player with no change (current coordinates)"
+           (create_player 30 40 10 10)
+           30 40 30 40;
+         test_change_hp "reduce hp from 100 by 20 to 80"
+           (create_player 0 0 10 10) (-20) 80;
+         test_change_hp "reduce hp from 10 by 15 to 0 (clamp)"
+           (create_player 0 0 10 10) (-100) 0;
+         test_change_hp "do not change hp when already 100 and add 10"
+           (create_player 0 0 10 10) 10 100;
+         test_change_hp "increase hp from 80 by 20 to 100" example_player 20 100;
+         test_change_hp "no change adding 0" (create_player 0 0 10 10) 0 100;
+         test_change_hp "reduce hp by very large amount (minimum of 0)"
+           (create_player 0 0 10 10) (-1000) 0;
+         test_change_hp "increase hp by very large amount (capped at 100)"
+           (create_player 0 0 10 10) 1000 100;
+         test_clear_all_projectiles "empty both lists" [] [];
+         test_clear_all_projectiles "player projectiles populated"
+           [ create_proj 0 0 1 1; create_proj 10 10 2 2 ]
+           [];
+         test_clear_all_projectiles "enemy projectiles populated" []
+           [ create_proj 5 5 3 3; create_proj 20 20 4 4 ];
+         test_clear_all_projectiles "both lists populated"
+           [ create_proj 0 0 1 1; create_proj 10 10 2 2 ]
+           [ create_proj 5 5 3 3; create_proj 20 20 4 4 ];
+         test_create_wall "create wall at origin" 0 0 10 10 0 0 10 10;
+         test_create_wall "create wall at positive coords" 5 5 15 20 5 5 15 20;
+         test_create_wall "create wall at negative coordinates" (-5) (-5) 10 10
+           (-5) (-5) 10 10;
+         test_create_wall "create wall with zero dimensions" 0 0 0 0 0 0 0 0;
+         test_create_wall "create wall with large dimensions" 1000 2000 500 500
+           1000 2000 500 500;
+         test_wall_x_pos "wall at x=0" (create_wall 0 0 10 10) 0;
+         test_wall_x_pos "wall at positive x=50" (create_wall 50 0 10 10) 50;
+         test_wall_x_pos "wall at negative x=-30"
+           (create_wall (-30) 0 10 10)
+           (-30);
+         test_wall_y_pos "wall at y=0" (create_wall 0 0 10 10) 0;
+         test_wall_y_pos "wall at positive y=50" (create_wall 0 50 10 10) 50;
+         test_wall_y_pos "wall at negative y=-30"
+           (create_wall 0 (-30) 10 10)
+           (-30);
+         test_get_wall_width "wall with width 10" (create_wall 0 0 10 10) 10;
+         test_get_wall_width "wall with width 50" (create_wall 0 0 50 10) 50;
+         test_get_wall_width "wall with width 0 (invalid)"
+           (create_wall 0 0 0 10) 0;
+         test_get_wall_height "wall with height 10" (create_wall 0 0 10 10) 10;
+         test_get_wall_height "wall with height 50" (create_wall 0 0 10 50) 50;
+         test_get_wall_height "wall with height 0 (invalid)"
+           (create_wall 0 0 10 0) 0;
+         test_in_wall_bounds "wall fully within bounds"
+           (create_wall 10 10 20 20) 50 50 true;
+         test_in_wall_bounds "wall partially out of bounds on x"
+           (create_wall 40 10 20 20) 50 50 false;
+         test_in_wall_bounds "wall partially out of bounds on y"
+           (create_wall 10 40 20 20) 50 50 false;
+         test_in_wall_bounds "wall completely out of bounds"
+           (create_wall 60 60 20 20) 50 50 false;
+         test_in_wall_bounds "wall exactly at bounds" (create_wall 0 0 50 50) 50
+           50 true;
+         test_in_wall_bounds "negative coordinates, out of bounds"
+           (create_wall (-10) (-10) 20 20)
+           50 50 false;
        ]
 
 let _ = run_test_tt_main tests
