@@ -42,7 +42,7 @@ let walls =
     (* Bottom wall *)
     create_wall 0 890 1810 890;
     (* Left wall *)
-    create_wall 60 60 60 890;
+    create_wall 41 60 60 890;
     (* Right wall *)
     create_wall 1810 60 1810 890;
   ]

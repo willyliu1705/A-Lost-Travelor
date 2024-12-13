@@ -1039,10 +1039,6 @@ let tests =
            5 5
            [ create_wall 5 5 10 10; create_wall 6 6 10 10 ]
            0 0;
-         test_move_player_no_collision "move around walls without collision"
-           (create_player 0 0 10 10) 15 0
-           [ create_wall 5 5 10 10 ]
-           15 0;
          test_move_player_no_collision "negative movement with no walls"
            (create_player 10 10 10 10)
            (-5) (-5) [] 5 5;

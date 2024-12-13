@@ -59,7 +59,7 @@ let handle_enemy_projectiles_with_player projectiles_ref player =
       !projectiles_ref
 
 let rectangles_intersect (x1, y1, w1, h1) (x2, y2, w2, h2) =
-  x1 < x2 + w2 && x1 + w1 > x2 && y1 < y2 + h2 && y1 + h1 > y2
+  x1 <= x2 + w2 && x1 + w1 >= x2 && y1 <= y2 + h2 && y1 + h1 >= y2
 
 let move_player_no_collision player dx dy walls =
   let new_x = current_x_pos player + dx in
