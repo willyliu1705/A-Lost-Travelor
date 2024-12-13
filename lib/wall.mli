@@ -1,3 +1,4 @@
+(* Type definition for Wall *)
 type t
 
 val create_wall : int -> int -> int -> int -> t

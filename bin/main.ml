@@ -4,8 +4,7 @@ open Dungeon_crawler.Projectile
 open Dungeon_crawler.Direction
 open Dungeon_crawler.Enemy
 open Dungeon_crawler.Player
-open Dungeon_crawler.Collision
-open Graphics
+open Dungeon_crawler.Wall
 
 type keyword = { mutable word : string }
 
@@ -19,16 +18,14 @@ type room_completed = { mutable completed : bool }
 
 let room_completed = { completed = false }
 let brown = rgb 150 75 0
-
 let player1 = create_player 40 40 10 10
 (* player has to be sufficiently small or else weird interactions will occur
    with the enemy entities (e.g. enemy sees the player "faster" when entering
    the enemy's line of sight from the right compared to the left; as a result,
    this causes the enemy to not shoot at the player when its supposed to. ) *)
-   
+
 let player_projectiles = ref []
 let enemy_projectiles = ref []
-
 let player_direction = ref right (* Change player default direction here *)
 
 (* Enemies should be the same size or larger than the player to prevent
@@ -37,9 +34,7 @@ let player_direction = ref right (* Change player default direction here *)
 let enemy1 = create_enemy 50 50 50 50 up 1 1.0
 let enemy2 = create_enemy 10 10 10 10 right 1 2.0
 let enemy3 = create_enemy 10 30 10 10 right 1 0.5
-
-(** [draw_rect_centered] draws the rectangle centered at point [x], [y] with
-    width [w] and height [h].*)
+let walls = [ Dungeon_crawler.Wall.create_wall 0 0 1807 0 ]
 let draw_rect_centered x y w h = draw_rect (x - (w / 2)) (y - (h / 2)) w h
 
 let draw_player player =
@@ -99,7 +94,31 @@ let update_enemy enemy =
     enemy_shoot enemy enemy_projectiles enemy_last_shot_time delay
       (Unix.gettimeofday ())
 
-let update_player player =
+(* Collision detection between two rectangles *)
+let rectangles_intersect (x1, y1, w1, h1) (x2, y2, w2, h2) =
+  (* Check if there is overlap between the player’s rectangle and the wall’s
+     rectangle *)
+  x1 < x2 + w2 && x1 + w1 > x2 && y1 < y2 + h2 && y1 + h1 > y2
+
+let move_player_no_collision player dx dy walls =
+  let new_x = current_x_pos player + dx in
+  let new_y = current_y_pos player + dy in
+
+  (* Check for collision with walls *)
+  if
+    List.exists
+      (fun wall ->
+        let wall_x, wall_y = get_wall_position wall in
+        let wall_w, wall_h = get_wall_size wall in
+        (* Check if the player's new position collides with the wall *)
+        let player_rect = (new_x, new_y, get_width player, get_height player) in
+        let wall_rect = (wall_x, wall_y, wall_w, wall_h) in
+        rectangles_intersect player_rect wall_rect)
+      walls
+  then () (* No movement if there is a collision *)
+  else move_player player dx dy (* Allow movement if no collision *)
+
+let update_player player walls =
   if key_pressed () then
     match read_key () with
     | key -> (
@@ -107,7 +126,8 @@ let update_player player =
         | Some dir ->
             player_direction := dir;
             let dx, dy = to_player_delta dir in
-            move_player player dx dy
+            move_player_no_collision player dx dy
+              walls (* Move with collision check *)
         | None ->
             if key = ' ' then
               let () =
@@ -266,7 +286,7 @@ let draw_tutorial_room_1 () =
   set_color red;
   draw_player player1;
   draw_hp_bar ();
-  update_player player1;
+  update_player player1 walls;
   draw_projectiles !player_projectiles;
   player_projectiles := move_projectiles !player_projectiles;
   draw_pressure_plate 954 493 50 50;
@@ -295,7 +315,7 @@ let draw_tutorial_room_2 () =
   set_color red;
   draw_player player1;
   draw_hp_bar ();
-  update_player player1;
+  update_player player1 walls;
   draw_projectiles !player_projectiles;
   player_projectiles := move_projectiles !player_projectiles;
   synchronize ()
