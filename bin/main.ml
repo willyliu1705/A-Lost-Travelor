@@ -23,6 +23,7 @@ type list_of_enemies = {
 
 let list_of_enemies = { list_of_enemies = [] }
 let brown = rgb 150 75 0
+let gray = rgb 211 211 211
 
 (* player has to be sufficiently small or else weird interactions will occur
    with the enemy entities (e.g. enemy sees the player "faster" when entering
@@ -42,7 +43,6 @@ let walls =
   ]
 
 let draw_rect_centered x y w h = draw_rect (x - (w / 2)) (y - (h / 2)) w h
-
 let fill_rect_centered x y w h = fill_rect (x - (w / 2)) (y - (h / 2)) w h
 
 let draw_player player =
