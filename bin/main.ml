@@ -155,6 +155,7 @@ let move_player_no_collision player dx dy walls =
   else move_player player dx dy (* Allow movement if no collision *)
 
 let update_player player walls =
+  handle_enemy_projectiles_with_player enemy_projectiles player;
   if key_pressed () then
     match read_key () with
     | key -> (
@@ -162,8 +163,7 @@ let update_player player walls =
         | Some dir ->
             player_direction := dir;
             let dx, dy = to_player_delta dir in
-            move_player_no_collision player dx dy
-              walls (* Move with collision check *)
+            move_player_no_collision player dx dy walls
         | None ->
             if key = ' ' then
               let () =
@@ -175,7 +175,6 @@ let update_player player walls =
               if current_time -. !last_heal_time >= 15.0 then (
                 change_hp player 5;
                 last_heal_time := current_time))
-
 
 let handle_player_projectiles_with_enemies projectiles_ref enemies =
   enemies.list_of_enemies <-
