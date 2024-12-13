@@ -27,7 +27,7 @@ let player1 = create_player 150 450 30 30
 (* player has to be sufficiently small or else weird interactions will occur
    with the enemy entities (e.g. enemy sees the player "faster" when entering
    the enemy's line of sight from the right compared to the left; as a result,
-   this causes the enemy to not shoot at the player when its supposed to. ) *)
+   this causes the enemy to not shoot at the player when its supposed to). *)
 let player1 = create_player 150 450 30 30
 
 (** [draw_rect_centered] draws the rectangle centered at point [x], [y] with
@@ -120,6 +120,7 @@ let update_enemy enemy =
       (Unix.gettimeofday ())
 
 let update_player player =
+  handle_enemy_projectiles_with_player enemy_projectiles player;
   if key_pressed () then
     match read_key () with
     | key -> (
