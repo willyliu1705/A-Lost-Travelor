@@ -37,25 +37,25 @@ let player1 = create_player 150 450 30 30
 
 let walls =
   [
-    Dungeon_crawler.Wall.create_wall 0 60 1810 60;
     (* Top wall *)
-    Dungeon_crawler.Wall.create_wall 0 890 1810 890;
+    create_wall 0 60 1810 60;
     (* Bottom wall *)
-    Dungeon_crawler.Wall.create_wall 60 60 60 890;
+    create_wall 0 890 1810 890;
     (* Left wall *)
-    Dungeon_crawler.Wall.create_wall 1810 60 1810 890;
+    create_wall 60 60 60 890;
     (* Right wall *)
+    create_wall 1810 60 1810 890;
   ]
 
 let changed_walls =
   [
-    Dungeon_crawler.Wall.create_wall 0 60 910 60;
-    Dungeon_crawler.Wall.create_wall 1015 60 1810 60;
-    Dungeon_crawler.Wall.create_wall 0 890 910 890;
-    Dungeon_crawler.Wall.create_wall 1015 890 1810 890;
-    Dungeon_crawler.Wall.create_wall 60 60 60 890;
-    Dungeon_crawler.Wall.create_wall 1810 60 1810 400;
-    Dungeon_crawler.Wall.create_wall 1810 540 1810 890;
+    create_wall 0 60 910 60;
+    create_wall 1015 60 1810 60;
+    create_wall 0 890 910 890;
+    create_wall 1015 890 1810 890;
+    create_wall 60 60 60 890;
+    create_wall 1810 60 1810 400;
+    create_wall 1810 540 1810 890;
   ]
 
 (* Helper function to get the correct set of walls based on room completion *)
@@ -119,8 +119,10 @@ let move_player_no_collision player dx dy walls =
   if
     List.exists
       (fun wall ->
-        let wall_x, wall_y = get_wall_position wall in
-        let wall_w, wall_h = get_wall_size wall in
+        let wall_x = wall_x_pos wall in
+        let wall_y = wall_y_pos wall in
+        let wall_w = get_wall_width wall in
+        let wall_h = get_wall_height wall in
         (* Check if the player's new position collides with the wall *)
         let player_rect = (new_x, new_y, get_width player, get_height player) in
         let wall_rect = (wall_x, wall_y, wall_w, wall_h) in
