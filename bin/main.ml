@@ -311,7 +311,6 @@ let draw_start_menu () =
   fill_rect 0 0 1908 987;
 
   Unix.sleepf 0.2;
-  (* Add stars as background *)
   for _ = 1 to 350 do
     let x = Random.int 1908 in
     let y = Random.int 987 in
