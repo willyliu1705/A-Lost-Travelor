@@ -17,6 +17,10 @@ type room_counter = { mutable room_counter : int }
 
 let room_counter = { room_counter = 0 }
 
+type new_room = { mutable new_room : bool }
+
+let new_room = { new_room = false }
+
 type list_of_enemies = {
   mutable list_of_enemies : Dungeon_crawler.Enemy.t list;
 }
@@ -44,53 +48,6 @@ let walls =
 
 let draw_rect_centered x y w h = draw_rect (x - (w / 2)) (y - (h / 2)) w h
 let fill_rect_centered x y w h = fill_rect (x - (w / 2)) (y - (h / 2)) w h
-
-let draw_player player =
-  let () = set_color red in
-  let () =
-    draw_rect_centered (current_x_pos player) (current_y_pos player)
-      (get_width player) (get_height player)
-  in
-  let () = set_color black in
-  let () =
-    draw_arc
-      (current_x_pos player + (get_width player / 2))
-      (current_y_pos player + (get_height player / 2))
-      5 5 (-90) 180
-  in
-  let () = set_color red in
-  if !player_direction = right then
-    draw_poly_line
-      [|
-        ( current_x_pos player + (get_width player / 4),
-          current_y_pos player - (get_height player / 4) );
-        ( current_x_pos player + (get_width player / 4),
-          current_y_pos player + (get_height player / 4) );
-      |]
-  else if !player_direction = left then
-    draw_poly_line
-      [|
-        ( current_x_pos player - (get_width player / 4),
-          current_y_pos player - (get_height player / 4) );
-        ( current_x_pos player - (get_width player / 4),
-          current_y_pos player + (get_height player / 4) );
-      |]
-  else if !player_direction = up then
-    draw_poly_line
-      [|
-        ( current_x_pos player - (get_width player / 4),
-          current_y_pos player + (get_height player / 4) );
-        ( current_x_pos player + (get_width player / 4),
-          current_y_pos player + (get_height player / 4) );
-      |]
-  else if !player_direction = down then
-    draw_poly_line
-      [|
-        ( current_x_pos player - (get_width player / 4),
-          current_y_pos player - (get_height player / 4) );
-        ( current_x_pos player + (get_width player / 4),
-          current_y_pos player - (get_height player / 4) );
-      |]
 
 let draw_hp_bar () =
   set_line_width 5;
@@ -190,14 +147,15 @@ let draw_heal_ability () =
   set_line_width 3;
   set_color white;
   fill_rect 90 27 41 45;
+  set_color black;
+  draw_rect_centered 110 50 45 50;
   set_color gray;
   draw_rect_centered 110 50 32 8;
   draw_rect_centered 110 50 8 32;
-  draw_rect_centered 110 50 45 50;
   set_color yellow;
   fill_rect_centered 110 50 32 8;
   fill_rect_centered 110 50 8 32;
-  set_color black;
+  set_color gray;
   fill_rect 90 27 41
     (let time_elapsed = Unix.gettimeofday () -. !last_heal_time in
      if time_elapsed < 15. then (15 - int_of_float time_elapsed) * 3 else 0);
@@ -213,8 +171,8 @@ let array_of_possible_directions = [| left; right; up; down |]
 
 let create_random_enemy room_difficulty =
   create_enemy
-    (Random.int 1657 + 100)
-    (Random.int 736 + 100)
+    (Random.int 1607 + 100)
+    (Random.int 686 + 100)
     (Random.int 10 + get_width player1)
     (Random.int 10 + get_height player1)
     array_of_possible_directions.(Random.int 4)
@@ -222,16 +180,56 @@ let create_random_enemy room_difficulty =
     (let shooting_delay = 5. -. Random.float (float_of_int room_difficulty) in
      if shooting_delay >= 0.25 then shooting_delay else 0.25)
 
+let draw_player player =
+  let () = set_color red in
+  let () =
+    draw_rect_centered (current_x_pos player) (current_y_pos player)
+      (get_width player) (get_height player)
+  in
+  let () = set_color black in
+  let () =
+    draw_arc
+      (current_x_pos player + (get_width player / 2))
+      (current_y_pos player + (get_height player / 2))
+      5 5 (-90) 180
+  in
+  let () = set_color red in
+  if !player_direction = right then
+    draw_poly_line
+      [|
+        ( current_x_pos player + (get_width player / 4),
+          current_y_pos player - (get_height player / 4) );
+        ( current_x_pos player + (get_width player / 4),
+          current_y_pos player + (get_height player / 4) );
+      |]
+  else if !player_direction = left then
+    draw_poly_line
+      [|
+        ( current_x_pos player - (get_width player / 4),
+          current_y_pos player - (get_height player / 4) );
+        ( current_x_pos player - (get_width player / 4),
+          current_y_pos player + (get_height player / 4) );
+      |]
+  else if !player_direction = up then
+    draw_poly_line
+      [|
+        ( current_x_pos player - (get_width player / 4),
+          current_y_pos player + (get_height player / 4) );
+        ( current_x_pos player + (get_width player / 4),
+          current_y_pos player + (get_height player / 4) );
+      |]
+  else if !player_direction = down then
+    draw_poly_line
+      [|
+        ( current_x_pos player - (get_width player / 4),
+          current_y_pos player - (get_height player / 4) );
+        ( current_x_pos player + (get_width player / 4),
+          current_y_pos player - (get_height player / 4) );
+      |]
+
 (* Enemies should be the same size or larger than the player to prevent
    unintended interactions and misalignment issues for enemy line of sight
    between the enemy and the player (an example is described above). *)
-let enemy1 = create_random_enemy room_counter.room_counter
-let enemy2 = create_random_enemy room_counter.room_counter
-let enemy3 = create_random_enemy room_counter.room_counter
-
-(* Don't forget to add any new enemies to the list below. *)
-let () = list_of_enemies.list_of_enemies <- [ enemy1; enemy2; enemy3 ]
-
 let draw_enemy enemy =
   let x = enemy_x_pos enemy in
   let y = enemy_y_pos enemy in
@@ -239,6 +237,19 @@ let draw_enemy enemy =
   let h = get_enemy_height enemy in
   set_color blue;
   draw_rect x y w h;
+  if get_direction enemy = left then
+    draw_poly_line
+      [| (x + (w / 4), y + (h / 4)); (x + (w / 4), y + (h * 3 / 4)) |]
+  else if get_direction enemy = right then
+    draw_poly_line
+      [| (x + (w * 3 / 4), y + (h / 4)); (x + (w * 3 / 4), y + (h * 3 / 4)) |]
+  else if get_direction enemy = down then
+    draw_poly_line
+      [| (x + (w / 4), y + (h / 4)); (x + (w * 3 / 4), y + (h / 4)) |]
+  else if get_direction enemy = up then
+    draw_poly_line
+      [| (x + (w / 4), y + (h * 3 / 4)); (x + (w * 3 / 4), y + (h * 3 / 4)) |];
+
   set_color black
 
 let draw_enemies enemies = List.iter draw_enemy enemies.list_of_enemies
@@ -302,7 +313,7 @@ let draw_start_menu () =
 
 (* THESE ARE THE COORDINATES OF THE WALLS *)
 let draw_normal_room_boundaries () =
-  set_color white;
+  set_color gray;
   fill_rect 0 0 100 987;
   fill_rect 101 887 1706 100;
   fill_rect 1807 0 101 987;
@@ -344,29 +355,54 @@ let draw_closed_room_doors () =
   draw_segments
     [| (903, 886, 1004, 886); (1807, 543, 1807, 443); (1004, 100, 903, 100) |]
 
-let check_next_room next_room =
+let check_enter_next_room next_room =
   if room_completed.completed then
     if
       current_x_pos player1 >= 903
       && current_x_pos player1 <= 1004
       && current_y_pos player1 <= 0
-    then
+    then (
       let () = keyword.word <- next_room in
-      move_player_absolute player1 950 850
+      move_player_absolute player1 950 850;
+      new_room.new_room <- true;
+      room_counter.room_counter <- room_counter.room_counter + 1)
     else if
       current_x_pos player1 >= 903
       && current_x_pos player1 <= 1004
       && current_y_pos player1 >= 987
-    then
+    then (
       let () = keyword.word <- next_room in
-      move_player_absolute player1 950 150
+      move_player_absolute player1 950 150;
+      new_room.new_room <- true;
+      room_counter.room_counter <- room_counter.room_counter + 1)
     else if
       current_x_pos player1 >= 1908
       && current_y_pos player1 >= 443
       && current_y_pos player1 <= 543
-    then
+    then (
       let () = keyword.word <- next_room in
-      move_player_absolute player1 150 493
+      move_player_absolute player1 150 493;
+      new_room.new_room <- true;
+      room_counter.room_counter <- room_counter.room_counter + 1)
+
+let check_room_completion () =
+  if list_of_enemies.list_of_enemies = [] then room_completed.completed <- true
+  else room_completed.completed <- false
+
+let create_enemies_for_new_room () =
+  if new_room.new_room = true then
+    for x = 1 to 3 + room_counter.room_counter do
+      list_of_enemies.list_of_enemies <-
+        create_random_enemy room_counter.room_counter
+        :: list_of_enemies.list_of_enemies
+    done;
+  new_room.new_room <- false
+
+let draw_room_number () =
+  set_color black;
+  moveto 1800 950;
+  draw_string ("Room Number: " ^ string_of_int room_counter.room_counter);
+  draw_rect 1795 945 100 18
 
 let draw_tutorial_room_1 () =
   draw_normal_room_boundaries ();
@@ -377,7 +413,7 @@ let draw_tutorial_room_1 () =
      let () =
        draw_string "Great! Now walk through any of the doors that opened."
      in
-     check_next_room "Tutorial Room 2"
+     check_enter_next_room "Tutorial Room 2"
    else
      let () = draw_closed_room_doors () in
      let () = set_color brown in
@@ -388,6 +424,7 @@ let draw_tutorial_room_1 () =
   set_color red;
   draw_player player1;
   draw_hp_bar ();
+  draw_room_number ();
   draw_heal_ability ();
   update_player player1 walls;
   draw_projectiles !player_projectiles;
@@ -396,7 +433,8 @@ let draw_tutorial_room_1 () =
   synchronize ()
 
 let draw_tutorial_room_2 () =
-  room_completed.completed <- false;
+  create_enemies_for_new_room ();
+  check_room_completion ();
   draw_normal_room_boundaries ();
   (if room_completed.completed then
      let () = draw_open_room_doors () in
@@ -405,15 +443,15 @@ let draw_tutorial_room_2 () =
      let () =
        draw_string "Nice job! Complete 1 more room to finish the tutorial."
      in
-     check_next_room "Tutorial Room 3"
+     check_enter_next_room "Tutorial Room 3"
    else
      let () = draw_closed_room_doors () in
      let () = set_color brown in
      let () = moveto 30 920 in
      let () =
        draw_string
-         "You can press SPACEBAR to shoot projectiles. Every time you fire a \
-          projectile though, you will lose HP. "
+         "You can press SPACEBAR to shoot projectiles at the blue enemies. \
+          Every time you fire a projectile though, you will lose HP. "
      in
      let () = moveto 30 900 in
      draw_string
@@ -422,6 +460,7 @@ let draw_tutorial_room_2 () =
   set_color red;
   draw_player player1;
   draw_hp_bar ();
+  draw_room_number ();
   draw_enemies list_of_enemies;
   update_enemies_and_projectiles player_projectiles list_of_enemies;
   draw_heal_ability ();
@@ -431,7 +470,99 @@ let draw_tutorial_room_2 () =
   enemy_projectiles := move_projectiles !enemy_projectiles;
   synchronize ()
 
-let draw_tutorial_room_3 () = ()
+let draw_tutorial_room_3 () =
+  create_enemies_for_new_room ();
+  check_room_completion ();
+  draw_normal_room_boundaries ();
+  (if room_completed.completed then
+     let () = draw_open_room_doors () in
+     let () = set_color brown in
+     let () = moveto 30 900 in
+     let () = draw_string "Best of luck! The real game begins now." in
+     check_enter_next_room "Room 4"
+   else
+     let () = draw_closed_room_doors () in
+     let () = set_color brown in
+     let () = moveto 30 920 in
+     let () =
+       draw_string
+         "As you progress through each room, there will be more enemies and \
+          they will become stronger."
+     in
+     let () = moveto 30 900 in
+     draw_string
+       "Fire sparingly! You can also press Q to activate your heal ability.");
+  set_line_width 2;
+  set_color red;
+  draw_player player1;
+  draw_hp_bar ();
+  draw_room_number ();
+  draw_enemies list_of_enemies;
+  update_enemies_and_projectiles player_projectiles list_of_enemies;
+  draw_heal_ability ();
+  update_player player1 walls;
+  draw_projectiles !player_projectiles;
+  draw_projectiles !enemy_projectiles;
+  enemy_projectiles := move_projectiles !enemy_projectiles;
+  synchronize ()
+
+let draw_room_4 () =
+  create_enemies_for_new_room ();
+  check_room_completion ();
+  draw_normal_room_boundaries ();
+  (if room_completed.completed then
+     let () = draw_open_room_doors () in
+     let () = set_color brown in
+     let () = moveto 30 900 in
+     let () = draw_string "You sure you want to keep going?" in
+     check_enter_next_room "Room 5"
+   else
+     let () = draw_closed_room_doors () in
+     let () = set_color brown in
+     let () = moveto 30 920 in
+     draw_string "Keep going!");
+  set_line_width 2;
+  set_color red;
+  draw_player player1;
+  draw_hp_bar ();
+  draw_room_number ();
+  draw_enemies list_of_enemies;
+  update_enemies_and_projectiles player_projectiles list_of_enemies;
+  draw_heal_ability ();
+  update_player player1 walls;
+  draw_projectiles !player_projectiles;
+  draw_projectiles !enemy_projectiles;
+  enemy_projectiles := move_projectiles !enemy_projectiles;
+  synchronize ()
+
+let draw_room_5 () =
+  create_enemies_for_new_room ();
+  check_room_completion ();
+  draw_normal_room_boundaries ();
+  (if room_completed.completed then
+     let () = draw_open_room_doors () in
+     let () = set_color brown in
+     let () = moveto 30 900 in
+     let () = draw_string "You sure you want to keep going?" in
+     check_enter_next_room "Room 4"
+   else
+     let () = draw_closed_room_doors () in
+     let () = set_color brown in
+     let () = moveto 30 920 in
+     draw_string "Keep going!");
+  set_line_width 2;
+  set_color red;
+  draw_player player1;
+  draw_hp_bar ();
+  draw_room_number ();
+  draw_enemies list_of_enemies;
+  update_enemies_and_projectiles player_projectiles list_of_enemies;
+  draw_heal_ability ();
+  update_player player1 walls;
+  draw_projectiles !player_projectiles;
+  draw_projectiles !enemy_projectiles;
+  enemy_projectiles := move_projectiles !enemy_projectiles;
+  synchronize ()
 
 let rec clear_input_queue () =
   if key_pressed () then
@@ -461,7 +592,8 @@ let draw_screens keyword =
   | "Tutorial Room 1" -> draw_tutorial_room_1 ()
   | "Tutorial Room 2" -> draw_tutorial_room_2 ()
   | "Tutorial Room 3" -> draw_tutorial_room_3 ()
-  | "Room 1" -> ()
+  | "Room 4" -> draw_room_4 ()
+  | "Room 5" -> draw_room_5 ()
   | _ -> ()
 
 let () =
