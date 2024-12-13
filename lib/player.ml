@@ -30,15 +30,6 @@ let change_hp player amount =
     let new_hp = min 100 (player.hp + amount) in
     player.hp <- new_hp
 
-let get_corners obj =
-  {
-    x_cord = current_x_pos obj;
-    y_cord = current_y_pos obj;
-    height = current_x_pos obj + get_height obj;
-    width = current_y_pos obj + get_width obj;
-    hp = get_hp obj;
-  }
-
 let player_shoot player projectiles_ref direction =
   let dx, dy = Direction.to_player_projectile_delta direction in
   let new_projectile =

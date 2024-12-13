@@ -61,22 +61,6 @@ let test_move_player_y name player dx dy expected_y =
   let () = move_player player dx dy in
   assert_equal expected_y (current_y_pos player) ~printer:string_of_int
 
-(** [test_get_corners_height name player expected_height] is a test case with
-    [name] that checks if calling [get_corners] on [player] results in the
-    correct height [expected_height]. *)
-let test_get_corners_height name player expected_height =
-  name >:: fun _ ->
-  let corners = get_corners player in
-  assert_equal expected_height (get_height corners) ~printer:string_of_int
-
-(** [test_get_corners_width name player expected_width] is a test case with
-    [name] that checks if calling [get_corners] on [player] results in the
-    correct width [expected_width]. *)
-let test_get_corners_width name player expected_width =
-  name >:: fun _ ->
-  let corners = get_corners player in
-  assert_equal expected_width (get_width corners) ~printer:string_of_int
-
 (** [test_create_proj_position name x y dx dy expected_x expected_y] is a test
     case with [name] that checks if creating a projectile results in the
     expected position ([expected_x], [expected_y]). *)
@@ -463,33 +447,6 @@ let tests =
          test_move_player_y "move player by very large negative dy"
            (create_player max_int max_int 10 10)
            0 (-max_int) 0;
-         test_get_corners_height "get corners of player updates height"
-           (create_player 0 0 20 10) 10;
-         test_get_corners_width "get corners of player updates width"
-           (create_player 0 0 20 10) 20;
-         test_get_corners_height "get corners of large player updates height"
-           (create_player 1000 2000 500 500)
-           1500;
-         test_get_corners_width "get corners of large player updates width"
-           (create_player 1000 2000 500 500)
-           2500;
-         test_get_corners_height
-           "get corners of negative position updates height"
-           (create_player (-10) (-20) 15 25)
-           15;
-         test_get_corners_width "get corners of negative position updates width"
-           (create_player (-10) (-20) 15 25)
-           (-5);
-         test_get_corners_height "get corners with very large height"
-           (create_player 0 0 20 max_int)
-           max_int;
-         test_get_corners_width "get corners with very large width"
-           (create_player 0 0 max_int 10)
-           max_int;
-         test_get_corners_height "get corners with zero height"
-           (create_player 0 0 20 0) 0;
-         test_get_corners_width "get corners with zero width"
-           (create_player 0 0 0 10) 0;
          test_create_proj_position
            "create projectile at origin with zero velocity" 0 0 0 0 0 0;
          test_create_proj_velocity "create projectile with positive velocity" 10
