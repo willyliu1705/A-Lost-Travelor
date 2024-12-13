@@ -3,37 +3,31 @@ open Dungeon_crawler.Player
 open Dungeon_crawler.Projectile
 open Dungeon_crawler.Direction
 open Dungeon_crawler.Enemy
-open Dungeon_crawler.Player
 open Dungeon_crawler.Wall
 
 type keyword = { mutable word : string }
 
 let keyword = { word = "Start Menu" }
 
-type paused = { mutable paused : bool }
-
-let paused = { paused = false }
-
 type room_completed = { mutable completed : bool }
 
 let room_completed = { completed = false }
+
+type room_counter = { mutable room_counter : int }
+
+let room_counter = { room_counter = 0 }
+
+type list_of_enemies = {
+  mutable list_of_enemies : Dungeon_crawler.Enemy.t list;
+}
+
+let list_of_enemies = { list_of_enemies = [] }
 let brown = rgb 150 75 0
-let player1 = create_player 40 40 10 10
 (* player has to be sufficiently small or else weird interactions will occur
    with the enemy entities (e.g. enemy sees the player "faster" when entering
    the enemy's line of sight from the right compared to the left; as a result,
    this causes the enemy to not shoot at the player when its supposed to. ) *)
-
-let player_projectiles = ref []
-let enemy_projectiles = ref []
-let player_direction = ref right (* Change player default direction here *)
-
-(* Enemies should be the same size or larger than the player to prevent
-   unintended interactions and misalignment issues for enemy line of sight
-   between the enemy and the player (an example is described above). *)
-let enemy1 = create_enemy 50 50 50 50 up 1 1.0
-let enemy2 = create_enemy 10 10 10 10 right 1 2.0
-let enemy3 = create_enemy 10 30 10 10 right 1 0.5
+let player1 = create_player 150 450 30 30
 
 let walls =
   [
@@ -49,8 +43,51 @@ let walls =
 let draw_rect_centered x y w h = draw_rect (x - (w / 2)) (y - (h / 2)) w h
 
 let draw_player player =
-  draw_rect_centered (current_x_pos player) (current_y_pos player)
-    (get_width player) (get_height player)
+  let () = set_color red in
+  let () =
+    draw_rect_centered (current_x_pos player) (current_y_pos player)
+      (get_width player) (get_height player)
+  in
+  let () = set_color black in
+  let () =
+    draw_arc
+      (current_x_pos player + (get_width player / 2))
+      (current_y_pos player + (get_height player / 2))
+      5 5 (-90) 180
+  in
+  let () = set_color red in
+  if !player_direction = right then
+    draw_poly_line
+      [|
+        ( current_x_pos player + (get_width player / 4),
+          current_y_pos player - (get_height player / 4) );
+        ( current_x_pos player + (get_width player / 4),
+          current_y_pos player + (get_height player / 4) );
+      |]
+  else if !player_direction = left then
+    draw_poly_line
+      [|
+        ( current_x_pos player - (get_width player / 4),
+          current_y_pos player - (get_height player / 4) );
+        ( current_x_pos player - (get_width player / 4),
+          current_y_pos player + (get_height player / 4) );
+      |]
+  else if !player_direction = up then
+    draw_poly_line
+      [|
+        ( current_x_pos player - (get_width player / 4),
+          current_y_pos player + (get_height player / 4) );
+        ( current_x_pos player + (get_width player / 4),
+          current_y_pos player + (get_height player / 4) );
+      |]
+  else if !player_direction = down then
+    draw_poly_line
+      [|
+        ( current_x_pos player - (get_width player / 4),
+          current_y_pos player - (get_height player / 4) );
+        ( current_x_pos player + (get_width player / 4),
+          current_y_pos player - (get_height player / 4) );
+      |]
 
 let draw_hp_bar () =
   set_line_width 5;
@@ -62,18 +99,13 @@ let draw_hp_bar () =
   draw_poly_line [| (85, 968); (85, 957) |];
   draw_poly_line [| (70, 955); (85, 955) |];
   draw_rect 105 945 200 20;
+  if get_hp player1 <= 0 then keyword.word <- "Game Over";
   set_color red;
   fill_rect 105 945 (get_hp player1 * 2) 20;
+  moveto 130 950;
+  set_color black;
+  draw_string (string_of_int (get_hp player1) ^ "/100");
   set_line_width 2
-
-let draw_enemy enemy =
-  let x = enemy_x_pos enemy in
-  let y = enemy_y_pos enemy in
-  let w = get_enemy_width enemy in
-  let h = get_enemy_height enemy in
-  set_color blue;
-  draw_rect x y w h;
-  set_color black
 
 let draw_projectiles projectiles =
   List.iter
@@ -87,16 +119,6 @@ let move_projectiles projectiles =
   let screen_height = size_y () in
   projectiles |> List.map move_proj
   |> List.filter (fun p -> in_bounds p screen_width screen_height)
-
-let player_shoot player projectiles_ref direction =
-  let dx, dy = to_player_projectile_delta direction in
-  let new_projectile =
-    create_proj
-      (current_x_pos player + (get_width player / 2))
-      (current_y_pos player + (get_height player / 2))
-      dx dy
-  in
-  projectiles_ref := new_projectile :: !projectiles_ref
 
 let update_enemy enemy =
   if aligned_with_player enemy (current_x_pos player1, current_y_pos player1)
@@ -144,7 +166,42 @@ let update_player player walls =
               let () =
                 player_shoot player player_projectiles !player_direction
               in
-              change_hp player (-1))
+              change_hp player (-1)
+            else if key = 'q' then
+              let current_time = Unix.gettimeofday () in
+              if current_time -. !last_heal_time >= 15.0 then (
+                change_hp player 5;
+                last_heal_time := current_time))
+
+let () = Random.self_init ()
+let array_of_possible_directions = [| left; right; up; down |]
+
+let create_random_enemy room_difficulty =
+  create_enemy
+    (Random.int 1657 + 100)
+    (Random.int 736 + 100)
+    (Random.int 10 + get_width player1)
+    (Random.int 10 + get_height player1)
+    array_of_possible_directions.(Random.int 4)
+    (1. +. (float_of_int room_difficulty /. 10.))
+    (let shooting_delay = 5. -. Random.float (float_of_int room_difficulty) in
+     if shooting_delay >= 0.25 then shooting_delay else 0.25)
+
+(* Enemies should be the same size or larger than the player to prevent
+   unintended interactions and misalignment issues for enemy line of sight
+   between the enemy and the player (an example is described above). *)
+let enemy1 = create_random_enemy room_counter.room_counter
+let enemy2 = create_random_enemy room_counter.room_counter
+let enemy3 = create_random_enemy room_counter.room_counter
+
+let draw_enemy enemy =
+  let x = enemy_x_pos enemy in
+  let y = enemy_y_pos enemy in
+  let w = get_enemy_width enemy in
+  let h = get_enemy_height enemy in
+  set_color blue;
+  draw_rect x y w h;
+  set_color black
 
 let draw_enemies () =
   draw_enemy enemy1;
@@ -156,39 +213,37 @@ let update_enemies () =
   update_enemy enemy2;
   update_enemy enemy3
 
-let check_press_start player =
-  let mouse_position = mouse_pos () in
-  if button_down () then
-    match mouse_position with
-    | x, y ->
-        if x >= 766 && x <= 1141 && y >= 133 && y <= 253 then
-          let () = clear_graph () in
-          keyword.word <- "Tutorial Room 1"
-        else ();
-        synchronize ()
-
-(* let draw_pause_button () = set_color black; set_line_width 3; draw_rect 1800
-   930 50 50; let mouse_position = mouse_pos () in if button_down () then match
-   mouse_position with | x, y -> if x >= 1800 && x <= 1850 && y >= 930 && y <=
-   980 then paused.paused <- true; synchronize () *)
-
 let draw_pressure_plate x y w h =
   set_color black;
   set_line_width 5;
   let () = draw_rect_centered x y w h in
   if
-    (current_x_pos player1 >= x - (w / 2)
-    && current_x_pos player1 <= x - (w / 2) + w)
-    && current_y_pos player1 >= y - (h / 2)
-    && current_y_pos player1 <= y - (h / 2) + h
+    (current_x_pos player1 >= x - (w / 2) - (get_width player1 / 2)
+    && current_x_pos player1 <= x - (w / 2) + w + (get_width player1 / 2))
+    && current_y_pos player1 >= y - (h / 2) - (get_height player1 / 2)
+    && current_y_pos player1 <= y - (h / 2) + h + (get_height player1 / 2)
   then room_completed.completed <- true
+
+let draw_button action next_room =
+  set_color white;
+  draw_rect_centered 954 193 375 120;
+  moveto 913 193;
+  draw_string ("PRESS TO " ^ action);
+  let mouse_position = mouse_pos () in
+  if button_down () then
+    match mouse_position with
+    | x, y ->
+        if x >= 766 && x <= 1141 && y >= 133 && y <= 253 then
+          keyword.word <- next_room
+        else ();
+        synchronize ()
 
 let draw_start_menu () =
   set_color black;
   fill_rect 0 0 1908 987;
 
   Unix.sleepf 0.2;
-  (* Add some stars as background *)
+  (* Add stars as background *)
   for _ = 1 to 350 do
     let x = Random.int 1908 in
     let y = Random.int 987 in
@@ -196,29 +251,13 @@ let draw_start_menu () =
     set_color (rgb brightness brightness brightness);
     fill_circle x y (Random.int 2)
   done;
+  draw_button "START" "Tutorial Room 1";
   set_color white;
-  draw_rect_centered 954 193 375 120;
-  moveto 913 193;
-  draw_string "PRESS TO START";
   moveto 913 793;
   draw_string "A Lost Traveler";
-  synchronize ();
-  check_press_start ()
+  synchronize ()
 
-let draw_start_room_boundaries () =
-  set_color black;
-  set_line_width 10;
-  draw_segments
-    [|
-      (0, 886, 903, 886);
-      (1004, 886, 1807, 886);
-      (1807, 886, 1807, 543);
-      (1807, 443, 1807, 100);
-      (1807, 100, 1004, 100);
-      (5, 100, 5, 886);
-      (903, 100, 0, 100);
-    |]
-
+(* THESE ARE THE COORDINATES OF THE WALLS *)
 let draw_normal_room_boundaries () =
   set_color black;
   set_line_width 10;
@@ -277,8 +316,7 @@ let check_next_room next_room =
       move_player_absolute player1 150 493
 
 let draw_tutorial_room_1 () =
-  draw_start_room_boundaries ();
-  (* draw_pause_button (); *)
+  draw_normal_room_boundaries ();
   (if room_completed.completed then
      let () = draw_open_room_doors () in
      let () = set_color brown in
@@ -306,7 +344,6 @@ let draw_tutorial_room_1 () =
 let draw_tutorial_room_2 () =
   room_completed.completed <- false;
   draw_normal_room_boundaries ();
-  (* draw_pause_button (); *)
   (if room_completed.completed then
      let () = draw_open_room_doors () in
      let () = set_color brown in
@@ -318,10 +355,15 @@ let draw_tutorial_room_2 () =
    else
      let () = draw_closed_room_doors () in
      let () = set_color brown in
+     let () = moveto 30 920 in
+     let () =
+       draw_string
+         "You can press SPACEBAR to shoot projectiles. Every time you fire a \
+          projectile though, you will lose HP. "
+     in
      let () = moveto 30 900 in
      draw_string
-       "You can press SPACEBAR to shoot projectiles. You can also press Q to \
-        activate your heal ability.");
+       "Fire sparingly! You can also press Q to activate your heal ability.");
   set_line_width 2;
   set_color red;
   draw_player player1;
@@ -329,6 +371,10 @@ let draw_tutorial_room_2 () =
   update_player player1 walls;
   draw_projectiles !player_projectiles;
   player_projectiles := move_projectiles !player_projectiles;
+  draw_enemies ();
+  update_enemies ();
+  draw_projectiles !enemy_projectiles;
+  enemy_projectiles := move_projectiles !enemy_projectiles;
   synchronize ()
 
 let draw_tutorial_room_3 () = ()
@@ -336,13 +382,34 @@ let draw_tutorial_room_3 () = ()
 (* draw_projectiles !enemy_projectiles; draw_enemy enemy; update_enemy enemy;
    enemy_projectiles := move_projectiles !enemy_projectiles; *)
 
+let rec clear_input_queue () =
+  if key_pressed () then
+    let _ = read_key () in
+    clear_input_queue ()
+
+let draw_game_over () =
+  clear_all_projectiles ();
+  change_hp player1 (-(get_hp player1 - 100));
+  move_player_absolute player1 150 450;
+  room_completed.completed <- false;
+  room_counter.room_counter <- 0;
+  clear_input_queue ();
+  set_color black;
+  fill_rect 0 0 1908 987;
+  moveto 953 493;
+  set_color red;
+  draw_string "GAME OVER";
+  draw_button "RESTART" "Start Menu";
+  synchronize ()
+
 let draw_screens keyword =
   match keyword with
   | "Start Menu" -> draw_start_menu ()
+  | "Game Over" -> draw_game_over ()
   | "Tutorial Room 1" -> draw_tutorial_room_1 ()
   | "Tutorial Room 2" -> draw_tutorial_room_2 ()
   | "Tutorial Room 3" -> draw_tutorial_room_3 ()
-  | "Level 1" -> ()
+  | "Room 1" -> ()
   | _ -> ()
 
 let () =

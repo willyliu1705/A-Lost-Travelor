@@ -4,7 +4,7 @@ type t = {
   width : int;
   height : int;
   mutable direction : Direction.t;
-  projectile_speed : int;
+  projectile_speed : float;
   shooting_delay : float;
 }
 
@@ -34,14 +34,14 @@ let enemy_shoot enemy projectiles_ref last_shot_time delay current_time =
   if current_time -. !last_shot_time >= delay then (
     let dx, dy =
       if Direction.is_up (get_direction enemy) then
-        (0, get_projectile_speed enemy)
+        (0., get_projectile_speed enemy)
       else if Direction.is_down (get_direction enemy) then
-        (0, -get_projectile_speed enemy)
+        (0., -.get_projectile_speed enemy)
       else if Direction.is_left (get_direction enemy) then
-        (-get_projectile_speed enemy, 0)
+        (-.get_projectile_speed enemy, 0.)
       else if Direction.is_right (get_direction enemy) then
-        (get_projectile_speed enemy, 0)
-      else ((0, 0) [@coverage off])
+        (get_projectile_speed enemy, 0.)
+      else ((0., 0.) [@coverage off])
       (* should never be able to reach last statement since there are only four
          directions *)
     in
@@ -50,7 +50,10 @@ let enemy_shoot enemy projectiles_ref last_shot_time delay current_time =
     let w = get_enemy_width enemy in
     let h = get_enemy_height enemy in
     let new_projectile =
-      Projectile.create_proj (x + (w / 2)) (y + (h / 2)) dx dy
+      Projectile.create_proj
+        (x + (w / 2))
+        (y + (h / 2))
+        (Float.to_int dx) (Float.to_int dy)
     in
     projectiles_ref := new_projectile :: !projectiles_ref;
     last_shot_time := current_time)
@@ -68,3 +71,10 @@ let aligned_with_player enemy (px, py) =
   | _ -> false [@coverage off]
 (* should never be able to reach last branch since there are only four
    directions *)
+
+let handle_projectile_collision_with_enemy projectiles_ref enemy =
+  let ex = enemy_x_pos enemy in
+  let ey = enemy_y_pos enemy in
+  let ew = get_enemy_width enemy in
+  let eh = get_enemy_height enemy in
+  Projectile.handle_collision projectiles_ref ex ey ew eh

@@ -4,7 +4,8 @@ type t
 val enemy_last_shot_time : float ref
 (** [enemy_last_shot_time] is the time of the last shot by an enemy. *)
 
-val create_enemy : int -> int -> int -> int -> Direction.t -> int -> float -> t
+val create_enemy :
+  int -> int -> int -> int -> Direction.t -> float -> float -> t
 (** [create_enemy x y w h dir projectile_speed shooting_delay] creates an enemy
     at position ([x], [y]) in Cartesian coordinates with width [w], height [h],
     facing direction [dir], [projectile_speed], and [shooting_delay]. Requires:
@@ -14,7 +15,7 @@ val enemy_x_pos : t -> int
 (** [enemy_x_pos enemy] is the current x-coordinate of [enemy] on the xy-plane. *)
 
 val enemy_y_pos : t -> int
-(** [enemy_x_pos enemy] is the current y-coordinate of [enemy] on the xy-plane . *)
+(** [enemy_y_pos enemy] is the current y-coordinate of [enemy] on the xy-plane. *)
 
 val get_enemy_height : t -> int
 (** [get_enemy_height enemy] is the height of [enemy]. *)
@@ -28,7 +29,7 @@ val set_direction : t -> Direction.t -> unit
 val get_direction : t -> Direction.t
 (** [get_direction enemy] is the current direction of [enemy]. *)
 
-val get_projectile_speed : t -> int
+val get_projectile_speed : t -> float
 (** [get_projectile_speed enemy] is the projectile speed of [enemy]. *)
 
 val get_shooting_delay : t -> float
@@ -48,3 +49,7 @@ val aligned_with_player : t -> int * int -> bool
     direction, then the enemy can "see" the player and any enemy actions will
     subsequently begin. Once the player leaves that "line of sight", then enemy
     action ceases. *)
+
+val handle_projectile_collision_with_enemy : Projectile.t list ref -> t -> unit
+(** [handle_projectile_collision_with_enemy projectiles_ref enemy] removes all
+    projectiles in [projectiles_ref] that collide with the given [enemy]. *)
