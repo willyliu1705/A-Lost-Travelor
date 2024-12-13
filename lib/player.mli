@@ -50,4 +50,5 @@ val player_shoot : t -> Projectile.t list ref -> Direction.t -> unit
 
 val handle_enemy_projectiles_with_player : Projectile.t list ref -> t -> unit
 (** [handle_enemy_projectiles_with_player enemy_projectiles player] removes all
-    projectiles in [enemy_projectiles] that collide with the given [player]. *)
+    projectiles in [enemy_projectiles] that collide with the given [player] and
+    decreases the player's HP by 10 for each collision. *)

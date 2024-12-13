@@ -54,5 +54,14 @@ let handle_enemy_projectiles_with_player enemy_projectiles player =
   let py = current_y_pos player in
   let pw = get_width player in
   let ph = get_height player in
-  if Projectile.detect_collision enemy_projectiles px py pw ph then
-    Projectile.handle_collision enemy_projectiles px py pw ph
+  let collided = ref false in
+  enemy_projectiles :=
+    List.filter
+      (fun proj ->
+        let collision =
+          Projectile.detect_collision enemy_projectiles px py pw ph
+        in
+        if collision then collided := true;
+        not collision)
+      !enemy_projectiles;
+  if !collided then change_hp player (-10)
