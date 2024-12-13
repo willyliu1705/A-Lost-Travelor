@@ -4,8 +4,6 @@ type t = {
   mutable width : int;
   mutable height : int;
   mutable hp : int;
-      (* store additional information about player in future sprints (e.g.
-         inventory) *)
 }
 
 let create_player x y w h =
@@ -24,9 +22,11 @@ let current_y_pos player = player.y_cord
 let get_width player = player.width
 let get_height player = player.height
 let get_hp player = player.hp
+let last_heal_time = ref 0.0
 
 let change_hp player amount =
-  if player.hp <= 100 then
+  if amount < 0 then player.hp <- max 0 (player.hp + amount)
+  else if player.hp < 100 then
     let new_hp = min 100 (player.hp + amount) in
     player.hp <- new_hp
 
