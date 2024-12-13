@@ -836,7 +836,7 @@ let tests =
            (create_enemy 50 50 10 10 up 1.0 1.0)
            [ create_proj 100 100 0 0; create_proj 200 200 0 0 ];
          test_handle_projectile_collision_with_enemy
-           "Multiple projectiles, some collisions"
+           "Multiple projectiles, some collisions of enemy"
            (ref [ create_proj 55 55 0 0; create_proj 200 200 0 0 ])
            (create_enemy 50 50 10 10 up 1.0 1.0)
            [ create_proj 200 200 0 0 ];
@@ -889,10 +889,10 @@ let tests =
            (create_player 50 50 10 10)
            [ create_proj 100 100 0 0; create_proj 200 200 0 0 ];
          test_handle_enemy_projectiles_with_player
-           "Multiple projectiles, some collisions"
-           (ref [ create_proj 55 55 0 0; create_proj 200 200 0 0 ])
+           "Multiple projectiles, some collisions of player"
+           (ref [ create_proj 61 61 0 0; create_proj 200 200 0 0 ])
            (create_player 50 50 10 10)
-           [ create_proj 200 200 0 0 ];
+           [ create_proj 61 61 0 0; create_proj 200 200 0 0 ];
          test_handle_enemy_projectiles_with_player
            "Multiple projectiles, all collide"
            (ref [ create_proj 55 55 0 0; create_proj 56 56 0 0 ])
