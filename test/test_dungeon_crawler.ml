@@ -817,51 +817,27 @@ let tests =
          test_player_shoot "Player shoots upwards"
            (create_player 50 50 10 10)
            (ref []) up
-           [
-             create_proj 55
-               (50 + player_projectile_speed)
-               0 player_projectile_speed;
-           ];
+           [ create_proj 60 60 0 5 ];
          test_player_shoot "Player shoots downwards"
            (create_player 50 50 10 10)
            (ref []) down
-           [
-             create_proj 55
-               (50 + player_projectile_speed)
-               0 (-player_projectile_speed);
-           ];
+           [ create_proj 60 60 0 (-5) ];
          test_player_shoot "Player shoots leftwards"
            (create_player 50 50 10 10)
            (ref []) left
-           [
-             create_proj
-               (50 + player_projectile_speed)
-               55 (-player_projectile_speed) 0;
-           ];
+           [ create_proj 60 60 (-5) 0 ];
          test_player_shoot "Player shoots rightwards"
            (create_player 50 50 10 10)
            (ref []) right
-           [
-             create_proj
-               (50 + player_projectile_speed)
-               55 player_projectile_speed 0;
-           ];
+           [ create_proj 60 60 5 0 ];
          test_player_shoot "Player with large dimensions shoots"
            (create_player 1000 2000 10 10)
            (ref []) up
-           [
-             create_proj 1005
-               (2000 + player_projectile_speed)
-               0 player_projectile_speed;
-           ];
+           [ create_proj 1010 2010 0 5 ];
          test_player_shoot "Player at negative position shoots"
            (create_player (-50) (-50) 10 10)
            (ref []) left
-           [
-             create_proj
-               (-50 + player_projectile_speed)
-               (-45) (-player_projectile_speed) 0;
-           ];
+           [ create_proj (-40) (-40) (-5) 0 ];
          test_handle_projectile_collision_with_enemy
            "No projectiles, no collision" (ref [])
            (create_enemy 50 50 10 10 up 1.0 1.0)

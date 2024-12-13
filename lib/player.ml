@@ -32,12 +32,11 @@ let change_hp player amount =
 
 let player_shoot player projectiles_ref direction =
   let dx, dy = Direction.to_player_projectile_delta direction in
-  let new_projectile =
-    Projectile.create_proj
-      (current_x_pos player + (get_width player / 2))
-      (current_y_pos player + (get_height player / 2))
-      dx dy
-  in
+  let x = current_x_pos player in
+  let y = current_y_pos player in
+  let w = get_width player in
+  let h = get_height player in
+  let new_projectile = Projectile.create_proj (x + w) (y + h) dx dy in
   projectiles_ref := new_projectile :: !projectiles_ref
 
 let handle_enemy_projectiles_with_player projectiles_ref player =

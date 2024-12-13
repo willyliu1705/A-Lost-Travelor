@@ -175,51 +175,27 @@ let create_random_enemy room_difficulty =
      if shooting_delay >= 0.25 then shooting_delay else 0.25)
 
 let draw_player player =
-  let () = set_color red in
-  let () =
-    draw_rect_centered (current_x_pos player) (current_y_pos player)
-      (get_width player) (get_height player)
-  in
-  let () = set_color black in
-  let () =
-    draw_arc
-      (current_x_pos player + (get_width player / 2))
-      (current_y_pos player + (get_height player / 2))
-      5 5 (-90) 180
-  in
-  let () = set_color red in
+  let x = current_x_pos player in
+  let y = current_y_pos player in
+  let w = get_width player in
+  let h = get_height player in
+  set_color red;
+  draw_rect x y w h;
+  set_color black;
+  draw_arc (x + w) (y + h) 5 5 (-90) 180;
+  set_color red;
   if !player_direction = right then
     draw_poly_line
-      [|
-        ( current_x_pos player + (get_width player / 4),
-          current_y_pos player - (get_height player / 4) );
-        ( current_x_pos player + (get_width player / 4),
-          current_y_pos player + (get_height player / 4) );
-      |]
+      [| (x + (3 * w / 4), y + (h / 4)); (x + (3 * w / 4), y + (3 * h / 4)) |]
   else if !player_direction = left then
     draw_poly_line
-      [|
-        ( current_x_pos player - (get_width player / 4),
-          current_y_pos player - (get_height player / 4) );
-        ( current_x_pos player - (get_width player / 4),
-          current_y_pos player + (get_height player / 4) );
-      |]
+      [| (x + (w / 4), y + (h / 4)); (x + (w / 4), y + (3 * h / 4)) |]
   else if !player_direction = up then
     draw_poly_line
-      [|
-        ( current_x_pos player - (get_width player / 4),
-          current_y_pos player + (get_height player / 4) );
-        ( current_x_pos player + (get_width player / 4),
-          current_y_pos player + (get_height player / 4) );
-      |]
+      [| (x + (w / 4), y + (3 * h / 4)); (x + (3 * w / 4), y + (3 * h / 4)) |]
   else if !player_direction = down then
     draw_poly_line
-      [|
-        ( current_x_pos player - (get_width player / 4),
-          current_y_pos player - (get_height player / 4) );
-        ( current_x_pos player + (get_width player / 4),
-          current_y_pos player - (get_height player / 4) );
-      |]
+      [| (x + (w / 4), y + (h / 4)); (x + (3 * w / 4), y + (h / 4)) |]
 
 (* Enemies should be the same size or larger than the player to prevent
    unintended interactions and misalignment issues for enemy line of sight
