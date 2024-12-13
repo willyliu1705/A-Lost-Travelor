@@ -369,6 +369,17 @@ let test_in_wall_bounds name wall width height expected =
     (in_wall_bounds wall width height)
     ~printer:string_of_bool
 
+(** [test_move_player_no_collision name player dx dy walls expected_x expected_y]
+    is a test case with [name] that checks if moving [player] by ([dx], [dy])
+    with walls [walls] results in the expected position ([expected_x],
+    [expected_y]). *)
+let test_move_player_no_collision name player dx dy walls expected_x expected_y
+    =
+  name >:: fun _ ->
+  let () = move_player_no_collision player dx dy walls in
+  assert_equal expected_x (current_x_pos player) ~printer:string_of_int;
+  assert_equal expected_y (current_y_pos player) ~printer:string_of_int
+
 let example_player = create_player 0 0 10 10
 let () = change_hp example_player (-20)
 
@@ -1036,6 +1047,38 @@ let tests =
          test_in_wall_bounds "negative coordinates, out of bounds"
            (create_wall (-10) (-10) 20 20)
            50 50 false;
+         test_move_player_no_collision "move with no walls"
+           (create_player 0 0 10 10) 5 5 [] 5 5;
+         test_move_player_no_collision "move into wall, no movement"
+           (create_player 0 0 10 10) 5 5
+           [ create_wall 5 5 10 10 ]
+           0 0;
+         test_move_player_no_collision
+           "move diagonally into corner of wall, no movement"
+           (create_player 0 0 10 10) 10 10
+           [ create_wall 10 10 10 10 ]
+           0 0;
+         test_move_player_no_collision
+           "move into overlapping walls, no movement" (create_player 0 0 10 10)
+           5 5
+           [ create_wall 5 5 10 10; create_wall 6 6 10 10 ]
+           0 0;
+         test_move_player_no_collision "move around walls without collision"
+           (create_player 0 0 10 10) 15 0
+           [ create_wall 5 5 10 10 ]
+           15 0;
+         test_move_player_no_collision "negative movement with no walls"
+           (create_player 10 10 10 10)
+           (-5) (-5) [] 5 5;
+         test_move_player_no_collision
+           "negative movement into wall, no movement"
+           (create_player 10 10 10 10)
+           (-5) (-5)
+           [ create_wall 5 5 10 10 ]
+           10 10;
+         test_move_player_no_collision "no movement when dx and dy are zero"
+           (create_player 10 10 10 10)
+           0 0 [] 10 10;
        ]
 
 let _ = run_test_tt_main tests

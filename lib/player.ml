@@ -58,3 +58,23 @@ let handle_enemy_projectiles_with_player projectiles_ref player =
         if collision then change_hp player (-10);
         not collision)
       !projectiles_ref
+
+let rectangles_intersect (x1, y1, w1, h1) (x2, y2, w2, h2) =
+  x1 < x2 + w2 && x1 + w1 > x2 && y1 < y2 + h2 && y1 + h1 > y2
+
+let move_player_no_collision player dx dy walls =
+  let new_x = current_x_pos player + dx in
+  let new_y = current_y_pos player + dy in
+  if
+    List.exists
+      (fun wall ->
+        let wall_x = Wall.wall_x_pos wall in
+        let wall_y = Wall.wall_y_pos wall in
+        let wall_w = Wall.get_wall_width wall in
+        let wall_h = Wall.get_wall_height wall in
+        let player_rect = (new_x, new_y, get_width player, get_height player) in
+        let wall_rect = (wall_x, wall_y, wall_w, wall_h) in
+        rectangles_intersect player_rect wall_rect)
+      walls
+  then ()
+  else move_player player dx dy
