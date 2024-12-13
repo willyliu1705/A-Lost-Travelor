@@ -47,3 +47,8 @@ val handle_enemy_projectiles_with_player : Projectile.t list ref -> t -> unit
 (** [handle_enemy_projectiles_with_player enemy_projectiles player] removes all
     projectiles in [enemy_projectiles] that collide with the given [player] and
     decreases the player's HP by 10 for each collision. *)
+
+val move_player_no_collision : t -> int -> int -> Wall.t list -> unit
+(** [move_player_no_collision player dx dy walls] attempts to move the [player]
+    by ([dx], [dy]). If this movement results in a collision with any wall in
+    [walls], the movement is canceled. *)
