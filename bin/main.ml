@@ -38,24 +38,24 @@ let player1 = create_player 150 450 30 30
 let walls =
   [
     (* Top wall *)
-    create_wall 0 60 1810 60;
+    create_wall 100 887 1706 100;
     (* Bottom wall *)
-    create_wall 0 890 1810 890;
+    create_wall 100 0 1706 100;
     (* Left wall *)
-    create_wall 41 60 60 890;
+    create_wall 0 0 100 987;
     (* Right wall *)
-    create_wall 1810 60 1810 890;
+    create_wall 1807 0 101 987;
   ]
 
 let changed_walls =
   [
-    create_wall 0 60 910 60;
-    create_wall 1015 60 1810 60;
-    create_wall 0 890 910 890;
-    create_wall 1015 890 1810 890;
-    create_wall 60 60 60 890;
-    create_wall 1810 60 1810 400;
-    create_wall 1810 540 1810 890;
+    create_wall 100 887 803 100;
+    create_wall 1004 887 803 100;
+    create_wall 100 0 803 100;
+    create_wall 1004 0 803 100;
+    create_wall 0 0 100 987;
+    create_wall 1807 543 101 444;
+    create_wall 1807 0 101 443;
   ]
 
 let get_current_walls () =
