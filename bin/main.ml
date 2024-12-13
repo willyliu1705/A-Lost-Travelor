@@ -37,7 +37,7 @@ let walls =
     Dungeon_crawler.Wall.create_wall 1015 60 1810 60;
     Dungeon_crawler.Wall.create_wall 0 890 910 890;
     Dungeon_crawler.Wall.create_wall 1015 890 1810 890;
-    Dungeon_crawler.Wall.create_wall 8 60 8 890;
+    Dungeon_crawler.Wall.create_wall 60 60 60 890;
     Dungeon_crawler.Wall.create_wall 1810 60 1810 400;
     Dungeon_crawler.Wall.create_wall 1810 540 1810 890;
   ]
@@ -190,14 +190,14 @@ let draw_heal_ability () =
   set_line_width 3;
   set_color white;
   fill_rect 90 27 41 45;
-  set_color black;
+  set_color gray;
   draw_rect_centered 110 50 32 8;
   draw_rect_centered 110 50 8 32;
   draw_rect_centered 110 50 45 50;
   set_color yellow;
   fill_rect_centered 110 50 32 8;
   fill_rect_centered 110 50 8 32;
-  set_color gray;
+  set_color black;
   fill_rect 90 27 41
     (let time_elapsed = Unix.gettimeofday () -. !last_heal_time in
      if time_elapsed < 15. then (15 - int_of_float time_elapsed) * 3 else 0);
@@ -302,7 +302,7 @@ let draw_start_menu () =
 
 (* THESE ARE THE COORDINATES OF THE WALLS *)
 let draw_normal_room_boundaries () =
-  set_color gray;
+  set_color white;
   fill_rect 0 0 100 987;
   fill_rect 101 887 1706 100;
   fill_rect 1807 0 101 987;
