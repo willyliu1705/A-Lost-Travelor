@@ -22,6 +22,7 @@ type list_of_enemies = {
 
 let list_of_enemies = { list_of_enemies = [] }
 let brown = rgb 150 75 0
+let gray = rgb 211 211 211
 let player1 = create_player 150 450 30 30
 
 (* player has to be sufficiently small or else weird interactions will occur
@@ -33,6 +34,8 @@ let player1 = create_player 150 450 30 30
 (** [draw_rect_centered] draws the rectangle centered at point [x], [y] with
     width [w] and height [h].*)
 let draw_rect_centered x y w h = draw_rect (x - (w / 2)) (y - (h / 2)) w h
+
+let fill_rect_centered x y w h = fill_rect (x - (w / 2)) (y - (h / 2)) w h
 
 let draw_player player =
   let () = set_color red in
@@ -140,6 +143,28 @@ let update_player player =
                 change_hp player 5;
                 last_heal_time := current_time))
 
+let draw_heal_ability () =
+  set_line_width 3;
+  set_color white;
+  fill_rect 90 27 41 45;
+  set_color black;
+  draw_rect_centered 110 50 32 8;
+  draw_rect_centered 110 50 8 32;
+  draw_rect_centered 110 50 45 50;
+  set_color yellow;
+  fill_rect_centered 110 50 32 8;
+  fill_rect_centered 110 50 8 32;
+  set_color gray;
+  fill_rect 90 27 41
+    (let time_elapsed = Unix.gettimeofday () -. !last_heal_time in
+     if time_elapsed < 15. then (15 - int_of_float time_elapsed) * 3 else 0);
+  moveto 93 31;
+  set_color red;
+  let time_elapsed = Unix.gettimeofday () -. !last_heal_time in
+  if time_elapsed < 15. then
+    draw_string (string_of_int (15 - int_of_float time_elapsed))
+  else draw_string "Q"
+
 let () = Random.self_init ()
 let array_of_possible_directions = [| left; right; up; down |]
 
@@ -226,6 +251,16 @@ let draw_start_menu () =
 
 (* THESE ARE THE COORDINATES OF THE WALLS *)
 let draw_normal_room_boundaries () =
+  set_color gray;
+  fill_rect 0 0 100 987;
+  fill_rect 101 887 1706 100;
+  fill_rect 1807 0 101 987;
+  fill_rect 100 0 1706 100;
+  if room_completed.completed then (
+    set_color (rgb 118 209 247);
+    fill_rect 903 886 101 101;
+    fill_rect 1807 443 101 101;
+    fill_rect 903 0 101 101);
   set_color black;
   set_line_width 10;
   draw_segments
@@ -302,6 +337,7 @@ let draw_tutorial_room_1 () =
   set_color red;
   draw_player player1;
   draw_hp_bar ();
+  draw_heal_ability ();
   update_player player1;
   draw_projectiles !player_projectiles;
   player_projectiles := move_projectiles !player_projectiles;
@@ -335,6 +371,7 @@ let draw_tutorial_room_2 () =
   set_color red;
   draw_player player1;
   draw_hp_bar ();
+  draw_heal_ability ();
   update_player player1;
   draw_projectiles !player_projectiles;
   player_projectiles := move_projectiles !player_projectiles;
@@ -357,6 +394,7 @@ let rec clear_input_queue () =
 let draw_game_over () =
   clear_all_projectiles ();
   change_hp player1 (-(get_hp player1 - 100));
+  last_heal_time := 15.0;
   move_player_absolute player1 150 450;
   room_completed.completed <- false;
   room_counter.room_counter <- 0;
