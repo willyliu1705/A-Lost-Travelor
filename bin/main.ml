@@ -325,10 +325,17 @@ let draw_tutorial_room_3 () = ()
 (* draw_projectiles !enemy_projectiles; draw_enemy enemy; update_enemy enemy;
    enemy_projectiles := move_projectiles !enemy_projectiles; *)
 
+let rec clear_input_queue () =
+  if key_pressed () then
+    let _ = read_key () in
+    clear_input_queue ()
+
 let draw_game_over () =
+  clear_all_projectiles ();
   change_hp player1 (-(get_hp player1 - 100));
   move_player_absolute player1 150 450;
   room_completed.completed <- false;
+  clear_input_queue ();
   set_color black;
   fill_rect 0 0 1908 987;
   moveto 953 493;

@@ -1,5 +1,5 @@
 (library
  (name dungeon_crawler)
- (libraries unix)
+ (libraries)
  (instrumentation
   (backend bisect_ppx)))
