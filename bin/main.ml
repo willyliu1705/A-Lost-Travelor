@@ -34,7 +34,18 @@ let player_direction = ref right (* Change player default direction here *)
 let enemy1 = create_enemy 50 50 50 50 up 1 1.0
 let enemy2 = create_enemy 10 10 10 10 right 1 2.0
 let enemy3 = create_enemy 10 30 10 10 right 1 0.5
-let walls = [ Dungeon_crawler.Wall.create_wall 0 0 1807 0 ]
+
+let walls =
+  [
+    Dungeon_crawler.Wall.create_wall 0 60 910 60;
+    Dungeon_crawler.Wall.create_wall 1015 60 1810 60;
+    Dungeon_crawler.Wall.create_wall 0 890 910 890;
+    Dungeon_crawler.Wall.create_wall 1015 890 1810 890;
+    Dungeon_crawler.Wall.create_wall 8 60 8 890;
+    Dungeon_crawler.Wall.create_wall 1810 60 1810 400;
+    Dungeon_crawler.Wall.create_wall 1810 540 1810 890;
+  ]
+
 let draw_rect_centered x y w h = draw_rect (x - (w / 2)) (y - (h / 2)) w h
 
 let draw_player player =
