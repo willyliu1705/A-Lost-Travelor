@@ -34,6 +34,9 @@ val change_hp : t -> int -> unit
 (** [change_hp player amount] adjusts the hp value of [player] according to the
     provided [amount]. *)
 
+val last_heal_time : float ref
+(** [last_heal_time] is the timestamp of the player's last heal action. *)
+
 val get_corners : t -> t
 (** [get_corners player] is a new player that has the same x,y-position as
     [player], but the height is increased by the value of the x-coprdinate and

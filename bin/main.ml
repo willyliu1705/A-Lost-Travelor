@@ -12,22 +12,19 @@ type room_completed = { mutable completed : bool }
 
 let room_completed = { completed = false }
 let brown = rgb 150 75 0
-let player1 = create_player 150 450 30 30
+
 (* player has to be sufficiently small or else weird interactions will occur
    with the enemy entities (e.g. enemy sees the player "faster" when entering
    the enemy's line of sight from the right compared to the left; as a result,
    this causes the enemy to not shoot at the player when its supposed to. ) *)
-
-let player_projectiles = ref []
-let enemy_projectiles = ref []
-let player_direction = ref right (* Change player default direction here *)
+let player1 = create_player 150 450 30 30
 
 (* Enemies should be the same size or larger than the player to prevent
    unintended interactions and misalignment issues for enemy line of sight
    between the enemy and the player (an example is described above). *)
-let enemy1 = create_enemy 400 500 50 50 up 1 1.0
-let enemy2 = create_enemy 200 250 10 10 right 1 2.0
-let enemy3 = create_enemy 350 700 10 10 right 1 0.5
+let enemy1 = create_enemy 400 500 50 50 up 1.0 1.0
+let enemy2 = create_enemy 200 250 10 10 right 1.0 2.0
+let enemy3 = create_enemy 350 700 10 10 right 1.0 0.5
 
 (** [draw_rect_centered] draws the rectangle centered at point [x], [y] with
     width [w] and height [h].*)
@@ -133,7 +130,11 @@ let update_player player =
                 player_shoot player player_projectiles !player_direction
               in
               change_hp player (-1)
-            else if key = 'q' then change_hp player 5)
+            else if key = 'q' then
+              let current_time = Unix.gettimeofday () in
+              if current_time -. !last_heal_time >= 15.0 then (
+                change_hp player 5;
+                last_heal_time := current_time))
 
 let draw_enemies () =
   draw_enemy enemy1;
@@ -324,10 +325,17 @@ let draw_tutorial_room_3 () = ()
 (* draw_projectiles !enemy_projectiles; draw_enemy enemy; update_enemy enemy;
    enemy_projectiles := move_projectiles !enemy_projectiles; *)
 
+let rec clear_input_queue () =
+  if key_pressed () then
+    let _ = read_key () in
+    clear_input_queue ()
+
 let draw_game_over () =
+  clear_all_projectiles ();
   change_hp player1 (-(get_hp player1 - 100));
   move_player_absolute player1 150 450;
   room_completed.completed <- false;
+  clear_input_queue ();
   set_color black;
   fill_rect 0 0 1908 987;
   moveto 953 493;
