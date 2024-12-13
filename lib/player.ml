@@ -22,7 +22,7 @@ let current_y_pos player = player.y_cord
 let get_width player = player.width
 let get_height player = player.height
 let get_hp player = player.hp
-let last_heal_time = ref 0.0
+let last_heal_time = ref 15.0
 
 let change_hp player amount =
   if amount < 0 then player.hp <- max 0 (player.hp + amount)
