@@ -33,6 +33,18 @@ let player1 = create_player 150 450 30 30
 
 let walls =
   [
+    Dungeon_crawler.Wall.create_wall 0 60 1810 60;
+    (* Top wall *)
+    Dungeon_crawler.Wall.create_wall 0 890 1810 890;
+    (* Bottom wall *)
+    Dungeon_crawler.Wall.create_wall 60 60 60 890;
+    (* Left wall *)
+    Dungeon_crawler.Wall.create_wall 1810 60 1810 890;
+    (* Right wall *)
+  ]
+
+let changed_walls =
+  [
     Dungeon_crawler.Wall.create_wall 0 60 910 60;
     Dungeon_crawler.Wall.create_wall 1015 60 1810 60;
     Dungeon_crawler.Wall.create_wall 0 890 910 890;
@@ -41,6 +53,12 @@ let walls =
     Dungeon_crawler.Wall.create_wall 1810 60 1810 400;
     Dungeon_crawler.Wall.create_wall 1810 540 1810 890;
   ]
+
+(* Helper function to get the correct set of walls based on room completion *)
+let get_current_walls () =
+  if room_completed.completed then changed_walls
+    (* Return the changed walls if the room is completed *)
+  else walls (* Return the original walls if the room is not completed *)
 
 let draw_rect_centered x y w h = draw_rect (x - (w / 2)) (y - (h / 2)) w h
 let fill_rect_centered x y w h = fill_rect (x - (w / 2)) (y - (h / 2)) w h
@@ -163,7 +181,9 @@ let update_player player walls =
         | Some dir ->
             player_direction := dir;
             let dx, dy = to_player_delta dir in
-            move_player_no_collision player dx dy walls
+            let current_walls = get_current_walls () in
+            (* Get the correct walls for collision detection *)
+            move_player_no_collision player dx dy current_walls
         | None ->
             if key = ' ' then
               let () =
