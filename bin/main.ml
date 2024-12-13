@@ -12,15 +12,12 @@ type room_completed = { mutable completed : bool }
 
 let room_completed = { completed = false }
 let brown = rgb 150 75 0
-let player1 = create_player 150 450 30 30
+
 (* player has to be sufficiently small or else weird interactions will occur
    with the enemy entities (e.g. enemy sees the player "faster" when entering
    the enemy's line of sight from the right compared to the left; as a result,
    this causes the enemy to not shoot at the player when its supposed to. ) *)
-
-let player_projectiles = ref []
-let enemy_projectiles = ref []
-let player_direction = ref right (* Change player default direction here *)
+let player1 = create_player 150 450 30 30
 
 (* Enemies should be the same size or larger than the player to prevent
    unintended interactions and misalignment issues for enemy line of sight
@@ -133,7 +130,11 @@ let update_player player =
                 player_shoot player player_projectiles !player_direction
               in
               change_hp player (-1)
-            else if key = 'q' then change_hp player 5)
+            else if key = 'q' then
+              let current_time = Unix.gettimeofday () in
+              if current_time -. !last_heal_time >= 15.0 then (
+                change_hp player 5;
+                last_heal_time := current_time))
 
 let draw_enemies () =
   draw_enemy enemy1;
